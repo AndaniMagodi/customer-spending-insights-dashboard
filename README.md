@@ -1,6 +1,12 @@
 # Customer Spending Insights Dashboard
 
+**Live demo:** [andanimagodi.github.io/customer-spending-insights-dashboard](https://andanimagodi.github.io/customer-spending-insights-dashboard/)
+
 Responsive React and TypeScript dashboard for exploring customer spending insights. It displays illustrative sample data in South African rand; it does not connect to a banking service or make financial decisions.
+
+## Screenshots
+
+![Dashboard overview](docs/screenshots/dashboard-desktop.jpg)
 
 ## Run locally
 
@@ -13,9 +19,9 @@ npm run dev
 
 The local config at `public/config.json` enables the MSW demo API by default. To connect to a real API during local development, set `apiUrl` to its base URL and `mockApi` to `false` in that file. Vite serves the file at runtime, so no rebuild is needed after changing it.
 
-The dashboard is available at http://localhost:5173 after starting Vite. The repository does not include a hosted demo; the same production image can be previewed locally on port 8080 with Docker.
+The dashboard is available at http://localhost:5173 after starting Vite. The same production image can be previewed locally on port 8080 with Docker.
 
-GitHub Pages deployment is configured to publish from `main` using GitHub Actions. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**. The site URL will be https://andanimagodi.github.io/customer-spending-insights-dashboard/ after the first successful deployment.
+GitHub Pages deploys from `main` only after the CI workflow passes linting, tests, build, dependency audit, and Docker smoke checks.
 
 ## Docker
 
@@ -43,7 +49,7 @@ npm run build
 npm audit --audit-level=high
 ```
 
-The GitHub Actions workflow runs lint, tests, build, dependency audit, Docker build, and a container HTTP smoke test for pull requests and pushes to `main`.
+The GitHub Actions workflow runs lint, tests, build, dependency audit, Docker build, and a container HTTP smoke test. It publishes to GitHub Pages only after every quality check succeeds.
 
 ## Project structure
 
@@ -63,6 +69,8 @@ src/
 ## Data and API boundary
 
 The API client requests all seven supplied endpoints: profile, summary, categories, monthly trends, transactions, spending goals, and available filters. Category and transaction icon/color metadata is rendered in the dashboard. Responses are validated at runtime with Zod. Query cancellation signals are passed to `fetch`, and TanStack Query retains previous results while a filter request is in flight. Preset transaction windows are calculated relative to the current local date; category requests also include a custom date range when one is applied.
+
+Goal statuses from the API are normalized to `on_track` or `warning`; an unknown status is derived from `percentageUsed` so new server-side statuses do not take down the goals section.
 
 MSW provides the sample API in local development and tests. Tests use the same request handlers as the browser worker, so they exercise the fetch client and response validation instead of returning fixtures directly from the API module. Fixtures are isolated under `src/features/spending/mocks/` and loaded in a separate chunk when mock mode is enabled.
 
