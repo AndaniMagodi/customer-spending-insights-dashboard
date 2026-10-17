@@ -1,5 +1,15 @@
 export type SpendingPeriod = '7d' | '30d' | '90d' | '1y'
 
+export interface CustomerProfile {
+  customerId: string
+  name: string
+  email: string
+  joinDate: string
+  accountType: string
+  totalSpent: number
+  currency: string
+}
+
 export interface SpendingSummary {
   period: SpendingPeriod
   totalSpent: number

@@ -7,21 +7,25 @@ import { DashboardSkeleton } from '../components/DashboardSkeleton'
 import { RecentTransactions } from '../components/RecentTransactions'
 import { SpendingSummaryCards } from '../components/SpendingSummaryCards'
 import { SpendingTrendChart } from '../components/SpendingTrendChart'
-import { getRecentTransactions, getSpendingCategories, getSpendingSummary, getSpendingTrends } from '../api/spendingApi'
+import { getCustomerProfile, getRecentTransactions, getSpendingCategories, getSpendingSummary, getSpendingTrends } from '../api/spendingApi'
 import type { SpendingPeriod } from '../types'
 
 export function SpendingDashboardPage() {
   const [period, setPeriod] = useState<SpendingPeriod>('30d')
+  // Trends are monthly in the supplied API, so short date ranges still need
+  // at least two points to render a useful line chart.
+  const trendMonths = period === '90d' ? 3 : period === '1y' ? 12 : 2
+  const profile = useQuery({ queryKey: ['customer-profile'], queryFn: getCustomerProfile })
   const summary = useQuery({ queryKey: ['spending-summary', period], queryFn: () => getSpendingSummary(period) })
   const categories = useQuery({ queryKey: ['spending-categories', period], queryFn: () => getSpendingCategories(period) })
-  const trends = useQuery({ queryKey: ['spending-trends', 6], queryFn: () => getSpendingTrends(6) })
-  const transactions = useQuery({ queryKey: ['spending-transactions', 5], queryFn: () => getRecentTransactions(5) })
+  const trends = useQuery({ queryKey: ['spending-trends', trendMonths], queryFn: () => getSpendingTrends(trendMonths) })
+  const transactions = useQuery({ queryKey: ['spending-transactions', period], queryFn: () => getRecentTransactions(period, 10) })
 
-  const isPending = summary.isPending || categories.isPending || trends.isPending || transactions.isPending
-  const error = summary.error || categories.error || trends.error || transactions.error
+  const isPending = profile.isPending || summary.isPending || categories.isPending || trends.isPending || transactions.isPending
+  const error = profile.error || summary.error || categories.error || trends.error || transactions.error
 
   return (
-    <DashboardShell>
+    <DashboardShell customerName={profile.data?.name ?? 'Customer'}>
       <main id="overview" className="mx-auto max-w-7xl px-4 pb-28 pt-7 sm:px-7 sm:pt-9 md:pb-10">
         <DashboardPageHeader period={period} onPeriodChange={setPeriod} />
 
