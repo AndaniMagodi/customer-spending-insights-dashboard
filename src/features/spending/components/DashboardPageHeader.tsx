@@ -1,11 +1,12 @@
-import type { SpendingPeriod } from '../types'
+import type { FiltersResponse, SpendingPeriod } from '../types'
 
 interface DashboardPageHeaderProps {
   period: SpendingPeriod
   onPeriodChange: (period: SpendingPeriod) => void
+  presets: FiltersResponse['dateRangePresets']
 }
 
-export function DashboardPageHeader({ period, onPeriodChange }: DashboardPageHeaderProps) {
+export function DashboardPageHeader({ period, onPeriodChange, presets }: DashboardPageHeaderProps) {
   return (
     <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
@@ -15,7 +16,7 @@ export function DashboardPageHeader({ period, onPeriodChange }: DashboardPageHea
       </div>
       <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-600">Spending period
         <select value={period} onChange={(event) => onPeriodChange(event.target.value as SpendingPeriod)} className="h-11 min-w-40 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm transition hover:border-emerald-300 focus:border-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-700/10">
-          <option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="90d">Last 90 days</option><option value="1y">Last year</option>
+          {presets.map((preset) => <option key={preset.value} value={preset.value}>{preset.label}</option>)}
         </select>
       </label>
     </div>

@@ -20,7 +20,7 @@ const initialFilters: TransactionFilters = { category: null, startDate: '', endD
 
 function renderTransactions() {
   const onFiltersChange = vi.fn()
-  render(<RecentTransactions transactions={transactions} categories={['Dining', 'Groceries']} filters={initialFilters} onFiltersChange={onFiltersChange} />)
+  render(<RecentTransactions transactions={transactions} categories={[{ name: 'Dining', color: '#a5d2c4', icon: 'utensils' }, { name: 'Groceries', color: '#087e69', icon: 'shopping-cart' }]} filters={initialFilters} onFiltersChange={onFiltersChange} />)
   return onFiltersChange
 }
 

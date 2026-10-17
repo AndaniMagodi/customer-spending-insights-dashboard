@@ -1,5 +1,6 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { formatCurrency, formatRoundedCurrency } from '../../../lib/format'
+import { CategoryIcon } from './CategoryIcon'
 import type { SpendingCategory } from '../types'
 
 export function CategoryBreakdown({ categories }: { categories: SpendingCategory[] }) {
@@ -16,7 +17,7 @@ export function CategoryBreakdown({ categories }: { categories: SpendingCategory
           <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categories} dataKey="amount" nameKey="name" innerRadius={62} outerRadius={88} paddingAngle={2} stroke="none" animationDuration={650} animationEasing="ease-out">{categories.map((item) => <Cell key={item.name} fill={item.color} />)}</Pie><Tooltip formatter={(value) => formatCurrency(Number(value))} /></PieChart></ResponsiveContainer>
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Total</span><span className="mt-1 text-sm font-bold tracking-tight text-slate-800">{formattedTotal}</span></div>
         </div>
-        <ul className="w-full space-y-1">{categories.map((item) => <li key={item.name} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-slate-50"><span className="size-2.5 shrink-0 rounded-full ring-4 ring-slate-50" style={{ backgroundColor: item.color }} /><span className="min-w-0 flex-1 truncate text-slate-600">{item.name}</span><span className="font-semibold tabular-nums text-slate-800">{formatCurrency(item.amount)}</span></li>)}</ul>
+        <ul className="w-full space-y-1">{categories.map((item) => <li key={item.name} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-slate-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-slate-50"><CategoryIcon name={item.icon} color={item.color} size={15} /></span><span className="min-w-0 flex-1 truncate text-slate-600">{item.name}</span><span className="font-semibold tabular-nums text-slate-800">{formatCurrency(item.amount)}</span></li>)}</ul>
       </div>}
     </section>
   )

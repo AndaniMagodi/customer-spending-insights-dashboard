@@ -1,7 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { formatCompactDate, formatCurrency, formatTransactionDate } from '../../../lib/format'
-import type { Transaction, TransactionFilters } from '../types'
+import { CategoryIcon } from './CategoryIcon'
+import type { FiltersResponse, Transaction, TransactionFilters } from '../types'
 
 export const TRANSACTIONS_PAGE_SIZE = 5
 
@@ -10,7 +11,7 @@ interface RecentTransactionsProps {
   pagination?: { total: number; limit: number; offset: number; hasMore: boolean }
   page?: number
   onPageChange?: (page: number) => void
-  categories: string[]
+  categories: FiltersResponse['categories']
   filters: TransactionFilters
   onFiltersChange: (filters: TransactionFilters) => void
 }
@@ -20,8 +21,8 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
   const detailsId = `transaction-details-${transaction.id}`
   return <>
     <tr className="group border-t border-slate-100 transition-colors hover:bg-emerald-50/30">
-      <td className="w-[62%] px-4 py-3 font-semibold text-slate-800 sm:w-auto sm:whitespace-nowrap sm:py-4"><button type="button" className="block max-w-full text-left hover:text-emerald-800" aria-expanded={expanded} aria-controls={detailsId} aria-label={`${transaction.merchant} transaction details`} onClick={() => setExpanded((value) => !value)}>{transaction.merchant}</button><span className="mt-1 block text-xs font-normal text-slate-500 sm:hidden" title={formatTransactionDate(transaction.date)}>{transaction.category} · {formatCompactDate(transaction.date)}</span></td>
-      <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{transaction.category}</td>
+      <td className="w-[62%] px-4 py-3 font-semibold text-slate-800 sm:w-auto sm:whitespace-nowrap sm:py-4"><button type="button" className="flex max-w-full items-center gap-2 text-left hover:text-emerald-800" aria-expanded={expanded} aria-controls={detailsId} aria-label={`${transaction.merchant} transaction details`} onClick={() => setExpanded((value) => !value)}><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-slate-50"><CategoryIcon name={transaction.icon} color={transaction.categoryColor} size={15} /></span><span className="truncate">{transaction.merchant}</span></button><span className="mt-1 block text-xs font-normal text-slate-500 sm:hidden" title={formatTransactionDate(transaction.date)}>{transaction.category} · {formatCompactDate(transaction.date)}</span></td>
+      <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell"><span className="inline-flex items-center gap-2"><CategoryIcon name={transaction.icon} color={transaction.categoryColor} size={15} />{transaction.category}</span></td>
       <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{formatTransactionDate(transaction.date)}</td>
       <td className="w-[38%] whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-slate-800 sm:w-auto sm:py-4">{formatCurrency(transaction.amount)}</td>
     </tr>
@@ -92,13 +93,13 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
         </div>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-[minmax(12rem,1fr)_12rem_12rem]">
           <label className="relative col-span-2 block lg:col-span-1">
-            <span className="sr-only">Search loaded transactions</span>
+            <span className="sr-only">Search this page</span>
             <Search size={17} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
               value={search}
               onChange={(event) => { setSearch(event.target.value); changePage(0) }}
-              placeholder="Search merchant or description"
+              placeholder="Search this page"
               className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
             />
           </label>
@@ -110,7 +111,7 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
             >
               <option value="all">All categories</option>
-              {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+              {categories.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
             </select>
           </label>
           <label>

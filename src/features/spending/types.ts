@@ -1,8 +1,11 @@
 export type {
   CategoriesResponse,
   CustomerProfile,
+  FiltersResponse,
+  GoalsResponse,
   SpendingCategory,
   SpendingPeriod,
+  SpendingGoal,
   SpendingSummary,
   SpendingTrend,
   Transaction,

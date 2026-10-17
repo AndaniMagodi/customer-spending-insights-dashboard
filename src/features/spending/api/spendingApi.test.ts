@@ -39,11 +39,16 @@ describe('spending API client and mock handlers', () => {
   })
 
   it('applies transaction category/date filters, sort order, and pagination to the mock response', async () => {
+    const today = new Date()
+    const makeDate = (daysAgo: number) => {
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysAgo)
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    }
     const [dateFiltered, amountSorted] = await Promise.all([
       getRecentTransactions('30d', {
         category: 'Dining',
-        startDate: '2026-10-01',
-        endDate: '2026-10-15',
+        startDate: makeDate(3),
+        endDate: makeDate(3),
         limit: 100,
       }),
       getRecentTransactions('30d', { sortBy: 'amount_desc', limit: 2 }),

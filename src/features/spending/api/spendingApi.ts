@@ -1,22 +1,18 @@
 import {
   CategoriesResponseSchema,
   CustomerProfileSchema,
+  FiltersResponseSchema,
+  GoalsResponseSchema,
   SpendingSummarySchema,
   TransactionSortBySchema,
   TransactionsResponseSchema,
   TrendsResponseSchema,
 } from './schemas'
 import type { SpendingPeriod, TransactionQueryOptions } from '../types'
+import { getPeriodDateRange } from '../../../lib/dateRanges'
 
 const customerId = '12345'
 const getApiBaseUrl = () => window.__APP_CONFIG__?.apiUrl.replace(/\/$/, '') ?? ''
-const defaultDateRanges: Record<SpendingPeriod, { startDate: string; endDate: string }> = {
-  '7d': { startDate: '2026-10-10', endDate: '2026-10-17' },
-  '30d': { startDate: '2026-09-17', endDate: '2026-10-17' },
-  '90d': { startDate: '2026-07-19', endDate: '2026-10-17' },
-  '1y': { startDate: '2025-10-17', endDate: '2026-10-17' },
-}
-
 async function getJson<T>(path: string, schema: { parse: (value: unknown) => T }, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, { signal, headers: { Accept: 'application/json' } })
   if (!response.ok) throw new Error(`Request failed (${response.status})`)
@@ -32,9 +28,19 @@ export function getSpendingSummary(period: SpendingPeriod, signal?: AbortSignal)
   return getJson(`/api/customers/${customerId}/spending/summary?${query}`, SpendingSummarySchema, signal)
 }
 
-export function getSpendingCategories(period: SpendingPeriod, signal?: AbortSignal) {
+export function getSpendingCategories(period: SpendingPeriod, dateRange: Pick<TransactionQueryOptions, 'startDate' | 'endDate'> = {}, signal?: AbortSignal) {
   const query = new URLSearchParams({ period })
+  if (dateRange.startDate) query.set('startDate', dateRange.startDate)
+  if (dateRange.endDate) query.set('endDate', dateRange.endDate)
   return getJson(`/api/customers/${customerId}/spending/categories?${query}`, CategoriesResponseSchema, signal)
+}
+
+export function getSpendingGoals(signal?: AbortSignal) {
+  return getJson(`/api/customers/${customerId}/goals`, GoalsResponseSchema, signal)
+}
+
+export function getSpendingFilters(signal?: AbortSignal) {
+  return getJson(`/api/customers/${customerId}/filters`, FiltersResponseSchema, signal)
 }
 
 export function getSpendingTrends(months = 6, signal?: AbortSignal) {
@@ -44,7 +50,7 @@ export function getSpendingTrends(months = 6, signal?: AbortSignal) {
 
 export function getRecentTransactions(period: SpendingPeriod, options: TransactionQueryOptions = {}, signal?: AbortSignal) {
   const { limit = 20, offset = 0, category, sortBy = 'date_desc' } = options
-  const range = defaultDateRanges[period]
+  const range = getPeriodDateRange(period)
   const query = new URLSearchParams({
     limit: String(Math.min(100, Math.max(1, limit))),
     offset: String(Math.max(0, offset)),

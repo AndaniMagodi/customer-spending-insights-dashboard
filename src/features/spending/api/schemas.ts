@@ -2,6 +2,21 @@ import { z } from 'zod'
 
 export const SpendingPeriodSchema = z.enum(['7d', '30d', '90d', '1y'])
 export const TransactionSortBySchema = z.enum(['date_desc', 'date_asc', 'amount_desc', 'amount_asc'])
+export const DateRangePresetSchema = z.object({ label: z.string(), value: SpendingPeriodSchema })
+export const FiltersResponseSchema = z.object({
+  categories: z.array(z.object({ name: z.string(), color: z.string(), icon: z.string() })),
+  dateRangePresets: z.array(DateRangePresetSchema),
+})
+export const SpendingGoalSchema = z.object({
+  id: z.string(),
+  category: z.string(),
+  monthlyBudget: z.number().positive(),
+  currentSpent: z.number().nonnegative(),
+  percentageUsed: z.number().nonnegative(),
+  daysRemaining: z.number().int().nonnegative(),
+  status: z.enum(['on_track', 'warning']),
+})
+export const GoalsResponseSchema = z.object({ goals: z.array(SpendingGoalSchema) })
 
 export const CustomerProfileSchema = z.object({
   customerId: z.string(),
@@ -70,6 +85,9 @@ export const TransactionsResponseSchema = z.object({
 
 export type SpendingPeriod = z.infer<typeof SpendingPeriodSchema>
 export type TransactionSortBy = z.infer<typeof TransactionSortBySchema>
+export type FiltersResponse = z.infer<typeof FiltersResponseSchema>
+export type SpendingGoal = z.infer<typeof SpendingGoalSchema>
+export type GoalsResponse = z.infer<typeof GoalsResponseSchema>
 export type CustomerProfile = z.infer<typeof CustomerProfileSchema>
 export type SpendingSummary = z.infer<typeof SpendingSummarySchema>
 export type SpendingCategory = z.infer<typeof SpendingCategorySchema>

@@ -1,4 +1,5 @@
-import type { CategoriesResponse, CustomerProfile, SpendingPeriod, SpendingSummary, Transaction, TrendsResponse } from '../types'
+import type { CategoriesResponse, CustomerProfile, FiltersResponse, SpendingGoal, SpendingPeriod, SpendingSummary, Transaction, TrendsResponse } from '../types'
+import { shiftFixtureDate, shiftFixtureMonth } from '../../../lib/dateRanges'
 
 export const customerId = '12345'
 
@@ -19,7 +20,7 @@ export const summaryFixtures: Record<SpendingPeriod, SpendingSummary> = {
   '1y': { period: '1y', totalSpent: 51240.5, transactionCount: 568, averageTransaction: 90.21, topCategory: 'Groceries', comparedToPrevious: { spentChange: 11.2, transactionChange: 5.4 } },
 }
 
-export const categoriesByPeriod: Record<SpendingPeriod, CategoriesResponse> = {
+const categoryFixtures: Record<SpendingPeriod, CategoriesResponse> = {
   '7d': {
     dateRange: { startDate: '2026-10-10', endDate: '2026-10-17' }, totalAmount: 1120.35,
     categories: [
@@ -65,7 +66,17 @@ export const categoriesByPeriod: Record<SpendingPeriod, CategoriesResponse> = {
   },
 }
 
-export const trends: TrendsResponse = {
+export const categoriesByPeriod: Record<SpendingPeriod, CategoriesResponse> = Object.fromEntries(
+  Object.entries(categoryFixtures).map(([period, response]) => [period, {
+    ...response,
+    dateRange: {
+      startDate: shiftFixtureDate(response.dateRange.startDate),
+      endDate: shiftFixtureDate(response.dateRange.endDate),
+    },
+  }]),
+) as Record<SpendingPeriod, CategoriesResponse>
+
+const trendFixtures: TrendsResponse = {
   trends: [
     { month: '2025-11', totalSpent: 3890.25, transactionCount: 42, averageTransaction: 92.62 },
     { month: '2025-12', totalSpent: 4150.8, transactionCount: 38, averageTransaction: 109.23 },
@@ -82,7 +93,11 @@ export const trends: TrendsResponse = {
   ],
 }
 
-export const transactions: Transaction[] = [
+export const trends: TrendsResponse = {
+  trends: trendFixtures.trends.map((trend) => ({ ...trend, month: shiftFixtureMonth(trend.month) })),
+}
+
+const transactionFixtures: Transaction[] = [
     { id: 'txn_123456', date: '2026-10-16T14:30:00Z', merchant: 'Pick n Pay', category: 'Groceries', amount: 245.8, description: 'Weekly groceries', paymentMethod: 'Credit Card', icon: 'shopping-cart', categoryColor: '#087e69' },
     { id: 'txn_123457', date: '2026-10-15T10:15:00Z', merchant: 'Netflix', category: 'Entertainment', amount: 199, description: 'Monthly subscription', paymentMethod: 'Debit Order', icon: 'film', categoryColor: '#3b9c83' },
     { id: 'txn_123465', date: '2026-10-14T12:30:00Z', merchant: 'Woolworths Food', category: 'Dining', amount: 184.5, description: 'Lunch with a colleague', paymentMethod: 'Credit Card', icon: 'utensils', categoryColor: '#a5d2c4' },
@@ -97,3 +112,33 @@ export const transactions: Transaction[] = [
     { id: 'txn_123463', date: '2026-06-14T09:20:00Z', merchant: 'Spotify', category: 'Entertainment', amount: 89.99, description: 'Monthly subscription', paymentMethod: 'Debit Order', icon: 'film', categoryColor: '#3b9c83' },
     { id: 'txn_123464', date: '2025-12-05T13:10:00Z', merchant: 'Builders', category: 'Shopping', amount: 840, description: 'Home supplies', paymentMethod: 'Credit Card', icon: 'shopping-bag', categoryColor: '#c3e1d7' },
 ]
+
+export const transactions: Transaction[] = transactionFixtures.map((transaction) => ({
+  ...transaction,
+  date: shiftFixtureDate(transaction.date),
+}))
+
+const currentDate = new Date()
+const daysRemaining = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate() - currentDate.getDate()
+
+export const spendingGoals: SpendingGoal[] = [
+  { id: 'goal_entertainment', category: 'Entertainment', monthlyBudget: 1000, currentSpent: 650.3, percentageUsed: 65.03, daysRemaining, status: 'on_track' },
+  { id: 'goal_groceries', category: 'Groceries', monthlyBudget: 1500, currentSpent: 1450.8, percentageUsed: 96.72, daysRemaining, status: 'warning' },
+]
+
+export const availableFilters: FiltersResponse = {
+  categories: [
+    { name: 'Groceries', color: '#087e69', icon: 'shopping-cart' },
+    { name: 'Entertainment', color: '#3b9c83', icon: 'film' },
+    { name: 'Transportation', color: '#73bba7', icon: 'car' },
+    { name: 'Dining', color: '#a5d2c4', icon: 'utensils' },
+    { name: 'Shopping', color: '#c3e1d7', icon: 'shopping-bag' },
+    { name: 'Utilities', color: '#d9ece5', icon: 'zap' },
+  ],
+  dateRangePresets: [
+    { label: 'Last 7 days', value: '7d' },
+    { label: 'Last 30 days', value: '30d' },
+    { label: 'Last 90 days', value: '90d' },
+    { label: 'Last year', value: '1y' },
+  ],
+}
