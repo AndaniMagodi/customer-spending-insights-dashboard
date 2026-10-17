@@ -17,7 +17,7 @@ interface RecentTransactionsProps {
 function TransactionRow({ transaction }: { transaction: Transaction }) {
   const [expanded, setExpanded] = useState(false)
   return <>
-    <tr className="border-t border-slate-100">
+    <tr className="group border-t border-slate-100 transition-colors hover:bg-emerald-50/30">
       <td className="w-[62%] px-4 py-3 font-semibold text-slate-800 sm:w-auto sm:whitespace-nowrap sm:py-4"><button type="button" className="block max-w-full text-left hover:text-emerald-800" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>{transaction.merchant}</button><span className="mt-1 block text-xs font-normal text-slate-500 sm:hidden" title={date(transaction.date)}>{transaction.category} · {compactDate(transaction.date)}</span></td>
       <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{transaction.category}</td>
       <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{date(transaction.date)}</td>
@@ -75,7 +75,7 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="transactions-title">
+    <section className="dashboard-surface rounded-2xl border bg-white" aria-labelledby="transactions-title">
       <div className="space-y-4 px-5 py-5 sm:px-6">
         <div>
           <h2 id="transactions-title" className="font-semibold text-slate-900">Recent transactions</h2>
@@ -138,7 +138,7 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-            <tr><th scope="col" className="px-4 py-3 font-semibold">Merchant</th><th scope="col" className="hidden px-4 py-3 font-semibold sm:table-cell">Category</th><th scope="col" className="hidden px-4 py-3 font-semibold sm:table-cell">Date</th><th scope="col" className="px-4 py-3 text-right font-semibold">Amount</th></tr>
+            <tr><th scope="col" className="bg-gradient-to-r from-slate-50 to-emerald-50/50 px-4 py-3 font-semibold">Merchant</th><th scope="col" className="hidden bg-gradient-to-r from-slate-50 to-emerald-50/50 px-4 py-3 font-semibold sm:table-cell">Category</th><th scope="col" className="hidden bg-gradient-to-r from-slate-50 to-emerald-50/50 px-4 py-3 font-semibold sm:table-cell">Date</th><th scope="col" className="bg-gradient-to-r from-slate-50 to-emerald-50/50 px-4 py-3 text-right font-semibold">Amount</th></tr>
           </thead>
           <tbody>
             {pageTransactions.map((transaction) => <TransactionRow key={transaction.id} transaction={transaction} />)}

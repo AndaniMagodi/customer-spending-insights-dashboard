@@ -6,8 +6,8 @@ const currency = (value: number) => new Intl.NumberFormat('en-ZA', { style: 'cur
 export function SpendingTrendChart({ trends }: { trends: SpendingTrend[] }) {
   const data = trends.map((item) => ({ ...item, month: new Intl.DateTimeFormat('en', { month: 'short' }).format(new Date(`${item.month}-01T00:00:00`)) }))
   return (
-    <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-5"><h2 className="font-semibold text-slate-900">Spending trend</h2><p className="mt-1 text-xs text-slate-500">Monthly spend over time</p></div>
+    <section className="dashboard-surface min-w-0 rounded-2xl border bg-white p-5 sm:p-6">
+      <div className="mb-5"><h2 className="font-semibold tracking-tight text-slate-900">Spending trend</h2><p className="mt-1 text-xs text-slate-500">Monthly spend over time</p></div>
       {data.length === 0 ? (
         <p role="status" className="grid min-h-64 place-items-center text-center text-sm text-slate-500">No spending trend data is available yet.</p>
       ) : <div className="h-64 w-full" role="img" aria-label={`Area chart of monthly spending: ${data.map((item) => `${item.month} ${currency(item.totalSpent)}`).join(', ')}`}>
@@ -18,7 +18,7 @@ export function SpendingTrendChart({ trends }: { trends: SpendingTrend[] }) {
             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#82908b', fontSize: 12 }} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#82908b', fontSize: 11 }} tickFormatter={(value: number) => `R${Math.round(value / 1000)}k`} />
             <Tooltip formatter={(value) => [currency(Number(value)), 'Spent']} />
-            <Area type="monotone" dataKey="totalSpent" stroke="#087e69" strokeWidth={3} fill="url(#spendFill)" activeDot={{ r: 5 }} />
+            <Area type="monotone" dataKey="totalSpent" stroke="#087e69" strokeWidth={3} fill="url(#spendFill)" activeDot={{ r: 5 }} animationDuration={650} animationEasing="ease-out" />
           </AreaChart>
         </ResponsiveContainer>
       </div>}
