@@ -5,6 +5,7 @@ import type { Transaction, TransactionFilters } from '../types'
 const PAGE_SIZE = 5
 const currency = (value: number) => new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(value)
 const date = (value: string) => new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
+const compactDate = (value: string) => new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short' }).format(new Date(value))
 
 interface RecentTransactionsProps {
   transactions: Transaction[]
@@ -17,10 +18,10 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
   const [expanded, setExpanded] = useState(false)
   return <>
     <tr className="border-t border-slate-100">
-      <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-800"><button type="button" className="text-left hover:text-emerald-800" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>{transaction.merchant}</button></td>
+      <td className="w-[62%] px-4 py-3 font-semibold text-slate-800 sm:w-auto sm:whitespace-nowrap sm:py-4"><button type="button" className="block max-w-full text-left hover:text-emerald-800" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>{transaction.merchant}</button><span className="mt-1 block text-xs font-normal text-slate-500 sm:hidden" title={date(transaction.date)}>{transaction.category} · {compactDate(transaction.date)}</span></td>
       <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{transaction.category}</td>
-      <td className="whitespace-nowrap px-4 py-4 text-slate-600">{date(transaction.date)}</td>
-      <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-slate-800">{currency(transaction.amount)}</td>
+      <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{date(transaction.date)}</td>
+      <td className="w-[38%] whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-slate-800 sm:w-auto sm:py-4">{currency(transaction.amount)}</td>
     </tr>
     {expanded && <tr className="sm:hidden"><td colSpan={4} className="bg-slate-50 px-4 py-3 text-xs text-slate-600">{transaction.description} · {transaction.paymentMethod}</td></tr>}
   </>
@@ -80,8 +81,8 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
           <h2 id="transactions-title" className="font-semibold text-slate-900">Recent transactions</h2>
           <p className="mt-1 text-xs text-slate-500">Filters apply to this list. Text search checks the loaded rows; dashboard summaries use the selected spending period.</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_12rem_12rem]">
-          <label className="relative block">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-[minmax(12rem,1fr)_12rem_12rem]">
+          <label className="relative col-span-2 block lg:col-span-1">
             <span className="sr-only">Search loaded transactions</span>
             <Search size={17} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -118,18 +119,18 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
           </label>
         </div>
         <form onSubmit={applyDateRange} className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-end">
-          <fieldset className="grid flex-1 gap-3 sm:grid-cols-2">
-            <legend className="mb-2 text-xs font-semibold text-slate-600">Custom transaction date range</legend>
-            <label className="flex flex-col gap-1 text-xs text-slate-600">From
-              <input type="date" value={draftStartDate} max={draftEndDate || undefined} onChange={(event) => setDraftStartDate(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" />
+          <fieldset className="grid min-w-0 flex-1 grid-cols-2 gap-2.5 sm:gap-3">
+            <legend className="mb-2 text-xs font-semibold text-slate-600">Custom date range</legend>
+            <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-600">From
+              <input type="date" value={draftStartDate} max={draftEndDate || undefined} onChange={(event) => setDraftStartDate(event.target.value)} className="min-w-0 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm sm:px-3" />
             </label>
-            <label className="flex flex-col gap-1 text-xs text-slate-600">To
-              <input type="date" value={draftEndDate} min={draftStartDate || undefined} onChange={(event) => setDraftEndDate(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" />
+            <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-600">To
+              <input type="date" value={draftEndDate} min={draftStartDate || undefined} onChange={(event) => setDraftEndDate(event.target.value)} className="min-w-0 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm sm:px-3" />
             </label>
           </fieldset>
-          <div className="flex gap-2">
-            <button type="submit" className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900">Apply dates</button>
-            <button type="button" onClick={clearFilters} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">Clear</button>
+          <div className="flex gap-2 sm:shrink-0">
+            <button type="submit" className="flex-1 rounded-lg bg-emerald-800 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900 sm:flex-none sm:px-4">Apply</button>
+            <button type="button" onClick={clearFilters} className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:flex-none sm:px-4">Clear</button>
           </div>
         </form>
         {dateError && <p role="alert" className="text-xs text-rose-700">{dateError}</p>}
@@ -137,7 +138,7 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-            <tr><th scope="col" className="px-4 py-3 font-semibold">Merchant</th><th scope="col" className="hidden px-4 py-3 font-semibold sm:table-cell">Category</th><th scope="col" className="px-4 py-3 font-semibold">Date</th><th scope="col" className="px-4 py-3 text-right font-semibold">Amount</th></tr>
+            <tr><th scope="col" className="px-4 py-3 font-semibold">Merchant</th><th scope="col" className="hidden px-4 py-3 font-semibold sm:table-cell">Category</th><th scope="col" className="hidden px-4 py-3 font-semibold sm:table-cell">Date</th><th scope="col" className="px-4 py-3 text-right font-semibold">Amount</th></tr>
           </thead>
           <tbody>
             {pageTransactions.map((transaction) => <TransactionRow key={transaction.id} transaction={transaction} />)}

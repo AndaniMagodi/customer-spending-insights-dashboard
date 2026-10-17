@@ -153,8 +153,6 @@ export function getRecentTransactions(period: SpendingPeriod, options: Transacti
   const mockResponse: TransactionsResponse = {
     transactions: filtered.slice(offset, offset + limit),
     pagination: {
-      // The demo only includes a sample of the period's activity. Report the
-      // number actually available in this fixture instead of the aggregate KPI.
       total: filtered.length,
       limit,
       offset,
