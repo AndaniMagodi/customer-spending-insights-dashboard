@@ -1,10 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
-import type { Transaction } from '../types'
+import type { Transaction, TransactionFilters } from '../types'
 
 const PAGE_SIZE = 5
 const currency = (value: number) => new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(value)
 const date = (value: string) => new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
+
+interface RecentTransactionsProps {
+  transactions: Transaction[]
+  categories: string[]
+  filters: TransactionFilters
+  onFiltersChange: (filters: TransactionFilters) => void
+}
 
 function TransactionRow({ transaction }: { transaction: Transaction }) {
   const [expanded, setExpanded] = useState(false)
@@ -19,70 +26,113 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
   </>
 }
 
-export function RecentTransactions({ transactions }: { transactions: Transaction[] }) {
+export function RecentTransactions({ transactions, categories, filters, onFiltersChange }: RecentTransactionsProps) {
   const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('all')
   const [page, setPage] = useState(0)
+  const [draftStartDate, setDraftStartDate] = useState(filters.startDate)
+  const [draftEndDate, setDraftEndDate] = useState(filters.endDate)
+  const [dateError, setDateError] = useState('')
 
-  const categories = useMemo(
-    () => [...new Set(transactions.map((transaction) => transaction.category))].sort((a, b) => a.localeCompare(b)),
-    [transactions],
-  )
   const filteredTransactions = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase()
     return transactions.filter((transaction) => {
-      const matchesCategory = category === 'all' || transaction.category === category
       const searchableText = `${transaction.merchant} ${transaction.category} ${transaction.description}`.toLocaleLowerCase()
-      return matchesCategory && (!normalizedSearch || searchableText.includes(normalizedSearch))
+      return !normalizedSearch || searchableText.includes(normalizedSearch)
     })
-  }, [category, search, transactions])
+  }, [search, transactions])
 
   const pageCount = Math.ceil(filteredTransactions.length / PAGE_SIZE)
   const pageTransactions = filteredTransactions.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   const firstResult = filteredTransactions.length === 0 ? 0 : page * PAGE_SIZE + 1
   const lastResult = Math.min((page + 1) * PAGE_SIZE, filteredTransactions.length)
 
-  function updateSearch(value: string) {
-    setSearch(value)
+  function updateFilters(next: TransactionFilters) {
+    onFiltersChange(next)
     setPage(0)
   }
 
-  function updateCategory(value: string) {
-    setCategory(value)
-    setPage(0)
+  function applyDateRange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (Boolean(draftStartDate) !== Boolean(draftEndDate)) {
+      setDateError('Choose both a start date and an end date, or clear both.')
+      return
+    }
+    if (draftStartDate && draftEndDate && draftStartDate > draftEndDate) {
+      setDateError('The start date must be on or before the end date.')
+      return
+    }
+    setDateError('')
+    updateFilters({ ...filters, startDate: draftStartDate, endDate: draftEndDate })
+  }
+
+  function clearFilters() {
+    setSearch('')
+    setDraftStartDate('')
+    setDraftEndDate('')
+    setDateError('')
+    updateFilters({ category: null, startDate: '', endDate: '', sortBy: 'date_desc' })
   }
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="transactions-title">
-      <div className="flex flex-col gap-4 px-5 py-5 sm:px-6">
+      <div className="space-y-4 px-5 py-5 sm:px-6">
         <div>
           <h2 id="transactions-title" className="font-semibold text-slate-900">Recent transactions</h2>
-          <p className="mt-1 text-xs text-slate-500">Search and filter the transactions currently loaded for this period.</p>
+          <p className="mt-1 text-xs text-slate-500">Filters apply to this list. Text search checks the loaded rows; dashboard summaries use the selected spending period.</p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <label className="relative block flex-1">
+        <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_12rem_12rem]">
+          <label className="relative block">
             <span className="sr-only">Search loaded transactions</span>
             <Search size={17} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
               value={search}
-              onChange={(event) => updateSearch(event.target.value)}
+              onChange={(event) => { setSearch(event.target.value); setPage(0) }}
               placeholder="Search merchant or description"
               className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
             />
           </label>
-          <label className="sm:w-52">
+          <label>
             <span className="sr-only">Filter by transaction category</span>
             <select
-              value={category}
-              onChange={(event) => updateCategory(event.target.value)}
+              value={filters.category ?? 'all'}
+              onChange={(event) => updateFilters({ ...filters, category: event.target.value === 'all' ? null : event.target.value })}
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
             >
               <option value="all">All categories</option>
               {categories.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </label>
+          <label>
+            <span className="sr-only">Sort transactions</span>
+            <select
+              value={filters.sortBy}
+              onChange={(event) => updateFilters({ ...filters, sortBy: event.target.value as TransactionFilters['sortBy'] })}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+            >
+              <option value="date_desc">Newest first</option>
+              <option value="date_asc">Oldest first</option>
+              <option value="amount_desc">Amount: high to low</option>
+              <option value="amount_asc">Amount: low to high</option>
+            </select>
+          </label>
         </div>
+        <form onSubmit={applyDateRange} className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-end">
+          <fieldset className="grid flex-1 gap-3 sm:grid-cols-2">
+            <legend className="mb-2 text-xs font-semibold text-slate-600">Custom transaction date range</legend>
+            <label className="flex flex-col gap-1 text-xs text-slate-600">From
+              <input type="date" value={draftStartDate} max={draftEndDate || undefined} onChange={(event) => setDraftStartDate(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" />
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-slate-600">To
+              <input type="date" value={draftEndDate} min={draftStartDate || undefined} onChange={(event) => setDraftEndDate(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" />
+            </label>
+          </fieldset>
+          <div className="flex gap-2">
+            <button type="submit" className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900">Apply dates</button>
+            <button type="button" onClick={clearFilters} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">Clear</button>
+          </div>
+        </form>
+        {dateError && <p role="alert" className="text-xs text-rose-700">{dateError}</p>}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-sm">
