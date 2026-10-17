@@ -54,7 +54,7 @@ export function SpendingDashboardPage() {
             <button type="button" onClick={retry} className="mt-4 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900">Try again</button>
           </section>
         ) : summary.data && categories.data && trends.data && transactions.data ? (
-          <div className="space-y-5">
+          <div className="dashboard-enter space-y-5">
             <SpendingSummaryCards summary={summary.data} />
             <section id="insights" className="grid scroll-mt-20 gap-5 xl:grid-cols-[1.55fr_1fr] md:scroll-mt-0">
               <Suspense fallback={<div aria-hidden="true" className="h-80 animate-pulse rounded-2xl bg-slate-200" />}>
