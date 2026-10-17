@@ -1,6 +1,6 @@
 # Customer Spending Insights Dashboard
 
-Responsive React and TypeScript dashboard scaffold for the customer spending insights assessment. It displays illustrative sample data in South African rand; it does not connect to a banking service or make financial decisions.
+Responsive React and TypeScript dashboard for exploring customer spending insights. It displays illustrative sample data in South African rand; it does not connect to a banking service or make financial decisions.
 
 ## Run locally
 
@@ -31,15 +31,26 @@ npm run lint
 
 ## Project structure
 
-- `src/App.tsx` — dashboard page and assessment sample data
-- `src/App.css` — responsive dashboard styles
-- `src/index.css` — global styles and design tokens
-- `Dockerfile` and `nginx.conf` — production image and static-file server
+```text
+src/
+├── features/spending/
+│   ├── api/           # Typed API boundary and local mock responses
+│   ├── components/   # Dashboard shell, cards, chart, and transaction UI
+│   ├── pages/        # Dashboard page and query orchestration
+│   └── types.ts      # API response and domain types
+├── App.tsx            # Application entry
+└── index.css          # Global styles and design tokens
+```
 
-## Engineering reference
+## Data and API boundary
 
-The project takes architectural cues from [Andani's Smart Parking System](https://github.com/AndaniMagodi/smart-parking-system): keep domain logic and UI concerns in clear boundaries, use explicit data types, document design choices, and include container and quality-check workflows. This dashboard is a frontend assessment with mocked data, so those ideas are adapted to a typed mock-data/API boundary rather than copying the parking app's backend or deployment setup.
+The supplied endpoint contract informed the TypeScript response types and request paths in `src/features/spending/api/spendingApi.ts`. The profile and 30-day summary/category values follow its examples. Those examples do not include complete datasets for every period, so the 7-day, 90-day, and 1-year responses, monthly trend history, and additional transaction rows are illustrative mock fixtures. All displayed amounts are ZAR.
 
-## Assessment notes
+With no `VITE_API_URL` configured, the app uses those local fixtures and a short simulated network delay. To connect an API, set `VITE_API_URL` to its base URL; the client then requests the documented `/api/customers/...` endpoints. The demo fixtures are not live customer or bank data.
 
-The initial screen includes summary metrics, category breakdown, monthly trend, and recent transactions. The supplied endpoint brief can guide mock-data types and filter behaviour as development continues. Replace illustrative figures with a clearly identified, internally consistent demo dataset before final submission.
+## Features
+
+- Summary metrics, category breakdown, monthly spending trends, and recent transactions
+- Period-aware summary, category, and transaction views
+- Responsive layout with loading and error states
+- Typed API boundary with local mock data or an optional API base URL

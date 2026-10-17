@@ -7,8 +7,9 @@ const links = [
   { label: 'Insights', icon: Activity, href: '#insights' },
 ]
 
-export function DashboardShell({ children }: { children: ReactNode }) {
+export function DashboardShell({ children, customerName }: { children: ReactNode; customerName: string }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const initials = customerName.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()
 
   return (
     <div className="min-h-screen bg-[#f6f8f7] text-slate-900">
@@ -21,7 +22,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <div className="md:pl-60">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-7">
           <div className="flex items-center gap-3"><button type="button" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden" aria-label={menuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? <X size={20} /> : <Menu size={20} />}</button><span className="font-semibold text-slate-800 md:hidden">Spending insights</span><span className="hidden text-sm text-slate-500 md:inline">Personal banking / Spending</span></div>
-          <div className="flex items-center gap-3"><button type="button" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Notifications"><Bell size={19} /></button><span className="grid size-9 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-900">JD</span><span className="hidden text-sm font-medium text-slate-700 sm:inline">Jordan Davis</span></div>
+          <div className="flex items-center gap-3"><button type="button" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Notifications"><Bell size={19} /></button><span className="grid size-9 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-900" aria-hidden="true">{initials}</span><span className="hidden text-sm font-medium text-slate-700 sm:inline">{customerName}</span></div>
         </header>
         {menuOpen && <nav className="border-b border-slate-200 bg-white px-4 py-3 md:hidden" aria-label="Mobile menu">{links.map(({ label, icon: Icon, href }) => <a key={label} href={href} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-slate-700" onClick={() => setMenuOpen(false)}><Icon size={18} aria-hidden="true" />{label}</a>)}</nav>}
         {children}
