@@ -15,6 +15,8 @@ The local config at `public/config.json` enables the MSW demo API by default. To
 
 The dashboard is available at http://localhost:5173 after starting Vite. The repository does not include a hosted demo; the same production image can be previewed locally on port 8080 with Docker.
 
+GitHub Pages deployment is configured to publish from `main` using GitHub Actions. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**. The site URL will be https://andanimagodi.github.io/customer-spending-insights-dashboard/ after the first successful deployment.
+
 ## Docker
 
 ```sh

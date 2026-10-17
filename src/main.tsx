@@ -24,7 +24,13 @@ async function bootstrap() {
     window.__APP_CONFIG__ = config
     if (config.mockApi) {
       const { worker } = await import('./features/spending/mocks/browser')
-      await worker.start({ onUnhandledFrame: 'bypass' })
+      await worker.start({
+        onUnhandledFrame: 'bypass',
+        serviceWorker: {
+          url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+          options: { scope: import.meta.env.BASE_URL },
+        },
+      })
     }
 
     root.render(

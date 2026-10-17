@@ -14,7 +14,7 @@ declare global {
 }
 
 export async function loadAppConfig(): Promise<AppConfig> {
-  const response = await fetch('/config.json', { cache: 'no-store' })
+  const response = await fetch(`${import.meta.env.BASE_URL}config.json`, { cache: 'no-store' })
   if (!response.ok) throw new Error('Application configuration could not be loaded.')
   return AppConfigSchema.parse(await response.json())
 }
