@@ -14,8 +14,13 @@ export const SpendingGoalSchema = z.object({
   currentSpent: z.number().nonnegative(),
   percentageUsed: z.number().nonnegative(),
   daysRemaining: z.number().int().nonnegative(),
-  status: z.enum(['on_track', 'warning']),
-})
+  status: z.string().optional(),
+}).transform((goal) => ({
+  ...goal,
+  status: goal.status === 'on_track' || goal.status === 'warning'
+    ? goal.status
+    : goal.percentageUsed >= 80 ? 'warning' as const : 'on_track' as const,
+}))
 export const GoalsResponseSchema = z.object({ goals: z.array(SpendingGoalSchema) })
 
 export const CustomerProfileSchema = z.object({

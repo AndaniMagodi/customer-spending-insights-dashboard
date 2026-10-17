@@ -3,8 +3,18 @@ import { describe, expect, it } from 'vitest'
 import { getCustomerProfile, getRecentTransactions, getSpendingCategories, getSpendingSummary } from './spendingApi'
 import { server } from '../mocks/server'
 import type { SpendingPeriod } from '../types'
+import { GoalsResponseSchema } from './schemas'
 
 describe('spending API client and mock handlers', () => {
+  it('derives a safe goal status when the API returns a new status value', () => {
+    const result = GoalsResponseSchema.parse({ goals: [
+      { id: 'goal-1', category: 'Groceries', monthlyBudget: 1000, currentSpent: 1200, percentageUsed: 120, daysRemaining: 0, status: 'exceeded' },
+      { id: 'goal-2', category: 'Dining', monthlyBudget: 1000, currentSpent: 400, percentageUsed: 40, daysRemaining: 8 },
+    ] })
+
+    expect(result.goals.map((goal) => goal.status)).toEqual(['warning', 'on_track'])
+  })
+
   it('fetches and validates the customer profile through the mock HTTP handler', async () => {
     await expect(getCustomerProfile()).resolves.toMatchObject({ customerId: '12345', currency: 'ZAR' })
   })
