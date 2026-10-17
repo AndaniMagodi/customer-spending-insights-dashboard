@@ -3,6 +3,9 @@ import type {
   CustomerProfile,
   SpendingPeriod,
   SpendingSummary,
+  Transaction,
+  TransactionQueryOptions,
+  TransactionSortBy,
   TransactionsResponse,
   TrendsResponse,
 } from '../types'
@@ -42,12 +45,12 @@ const categoriesByPeriod: Record<SpendingPeriod, CategoriesResponse> = {
   '30d': {
     dateRange: { startDate: '2026-09-17', endDate: '2026-10-17' }, totalAmount: 4250.75,
     categories: [
-      { name: 'Groceries', amount: 1250.3, percentage: 29.4, transactionCount: 15, color: '#087e69', icon: 'shopping-cart' },
-      { name: 'Entertainment', amount: 890.2, percentage: 20.9, transactionCount: 8, color: '#3b9c83', icon: 'film' },
-      { name: 'Transportation', amount: 680.45, percentage: 16, transactionCount: 12, color: '#73bba7', icon: 'car' },
-      { name: 'Dining', amount: 520.3, percentage: 12.2, transactionCount: 9, color: '#a5d2c4', icon: 'utensils' },
-      { name: 'Shopping', amount: 450.8, percentage: 10.6, transactionCount: 6, color: '#c3e1d7', icon: 'shopping-bag' },
-      { name: 'Utilities', amount: 458.7, percentage: 10.8, transactionCount: 3, color: '#d9ece5', icon: 'zap' },
+      { name: 'Groceries', amount: 1250.3, percentage: 29.4, transactionCount: 13, color: '#087e69', icon: 'shopping-cart' },
+      { name: 'Entertainment', amount: 890.2, percentage: 20.9, transactionCount: 7, color: '#3b9c83', icon: 'film' },
+      { name: 'Transportation', amount: 680.45, percentage: 16, transactionCount: 10, color: '#73bba7', icon: 'car' },
+      { name: 'Dining', amount: 520.3, percentage: 12.2, transactionCount: 8, color: '#a5d2c4', icon: 'utensils' },
+      { name: 'Shopping', amount: 450.8, percentage: 10.6, transactionCount: 5, color: '#c3e1d7', icon: 'shopping-bag' },
+      { name: 'Utilities', amount: 458.7, percentage: 10.8, transactionCount: 4, color: '#d9ece5', icon: 'zap' },
     ],
   },
   '90d': {
@@ -91,8 +94,7 @@ const trends: TrendsResponse = {
   ],
 }
 
-const transactions: TransactionsResponse = {
-  transactions: [
+const transactions: Transaction[] = [
     { id: 'txn_123456', date: '2026-10-16T14:30:00Z', merchant: 'Pick n Pay', category: 'Groceries', amount: 245.8, description: 'Weekly groceries', paymentMethod: 'Credit Card', icon: 'shopping-cart', categoryColor: '#087e69' },
     { id: 'txn_123457', date: '2026-10-15T10:15:00Z', merchant: 'Netflix', category: 'Entertainment', amount: 199, description: 'Monthly subscription', paymentMethod: 'Debit Order', icon: 'film', categoryColor: '#3b9c83' },
     { id: 'txn_123465', date: '2026-10-14T12:30:00Z', merchant: 'Woolworths Food', category: 'Dining', amount: 184.5, description: 'Lunch with a colleague', paymentMethod: 'Credit Card', icon: 'utensils', categoryColor: '#a5d2c4' },
@@ -106,9 +108,7 @@ const transactions: TransactionsResponse = {
     { id: 'txn_123462', date: '2026-07-30T16:45:00Z', merchant: 'Engen', category: 'Transportation', amount: 730, description: 'Fuel', paymentMethod: 'Credit Card', icon: 'car', categoryColor: '#73bba7' },
     { id: 'txn_123463', date: '2026-06-14T09:20:00Z', merchant: 'Spotify', category: 'Entertainment', amount: 89.99, description: 'Monthly subscription', paymentMethod: 'Debit Order', icon: 'film', categoryColor: '#3b9c83' },
     { id: 'txn_123464', date: '2025-12-05T13:10:00Z', merchant: 'Builders', category: 'Shopping', amount: 840, description: 'Home supplies', paymentMethod: 'Credit Card', icon: 'shopping-bag', categoryColor: '#c3e1d7' },
-  ],
-  pagination: { total: 0, limit: 10, offset: 0, hasMore: false },
-}
+]
 
 async function getJson<T>(path: string, mockResponse: T): Promise<T> {
   await wait(300)
@@ -138,24 +138,37 @@ export function getSpendingTrends(months = 6) {
   return getJson<TrendsResponse>(`/api/customers/${customerId}/spending/trends?${query}`, mockResponse)
 }
 
-export function getRecentTransactions(period: SpendingPeriod, limit = 10) {
-  const { startDate, endDate } = categoriesByPeriod[period].dateRange
-  const query = new URLSearchParams({ limit: String(limit), offset: '0', sortBy: 'date_desc', startDate, endDate })
-  const filtered = transactions.transactions.filter((item) => {
+export function getRecentTransactions(period: SpendingPeriod, options: TransactionQueryOptions = {}) {
+  const { limit = 10, offset = 0, category, sortBy = 'date_desc' } = options
+  const periodRange = categoriesByPeriod[period].dateRange
+  const startDate = options.startDate || periodRange.startDate
+  const endDate = options.endDate || periodRange.endDate
+  const query = new URLSearchParams({ limit: String(limit), offset: String(offset), sortBy, startDate, endDate })
+  if (category) query.set('category', category)
+  const filtered = transactions.filter((item) => {
     const transactionDate = item.date.slice(0, 10)
-    return transactionDate >= startDate && transactionDate <= endDate
+    return transactionDate >= startDate && transactionDate <= endDate && (!category || item.category === category)
   })
-  filtered.sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+  filtered.sort((a, b) => compareTransactions(a, b, sortBy))
   const mockResponse: TransactionsResponse = {
-    transactions: filtered.slice(0, limit),
+    transactions: filtered.slice(offset, offset + limit),
     pagination: {
       // The demo only includes a sample of the period's activity. Report the
       // number actually available in this fixture instead of the aggregate KPI.
       total: filtered.length,
       limit,
-      offset: 0,
-      hasMore: filtered.length > limit,
+      offset,
+      hasMore: offset + limit < filtered.length,
     },
   }
   return getJson<TransactionsResponse>(`/api/customers/${customerId}/transactions?${query}`, mockResponse)
+}
+
+function compareTransactions(a: Transaction, b: Transaction, sortBy: TransactionSortBy) {
+  switch (sortBy) {
+    case 'date_asc': return Date.parse(a.date) - Date.parse(b.date)
+    case 'amount_desc': return b.amount - a.amount
+    case 'amount_asc': return a.amount - b.amount
+    case 'date_desc': return Date.parse(b.date) - Date.parse(a.date)
+  }
 }

@@ -107,8 +107,31 @@ describe('SpendingDashboardPage', () => {
     await waitFor(() => {
       expect(getSpendingSummary).toHaveBeenLastCalledWith('7d')
       expect(getSpendingCategories).toHaveBeenLastCalledWith('7d')
-      expect(getRecentTransactions).toHaveBeenLastCalledWith('7d', 100)
+      expect(getRecentTransactions).toHaveBeenLastCalledWith('7d', expect.objectContaining({ limit: 100, sortBy: 'date_desc' }))
     })
+  })
+
+  it('sends category, custom dates, and sort order to the transaction endpoint client', async () => {
+    const user = userEvent.setup()
+    renderDashboard()
+    await screen.findByText('Pick n Pay')
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /filter by transaction category/i }), 'Groceries')
+    await waitFor(() => expect(getRecentTransactions).toHaveBeenLastCalledWith('30d', expect.objectContaining({ category: 'Groceries' })))
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Sort transactions' }), 'amount_desc')
+    await waitFor(() => expect(getRecentTransactions).toHaveBeenLastCalledWith('30d', expect.objectContaining({ category: 'Groceries', sortBy: 'amount_desc' })))
+
+    await user.type(screen.getByLabelText('From'), '2026-10-01')
+    await user.type(screen.getByLabelText('To'), '2026-10-15')
+    await user.click(screen.getByRole('button', { name: 'Apply dates' }))
+
+    await waitFor(() => expect(getRecentTransactions).toHaveBeenLastCalledWith('30d', expect.objectContaining({
+      category: 'Groceries',
+      startDate: '2026-10-01',
+      endDate: '2026-10-15',
+      sortBy: 'amount_desc',
+    })))
   })
 
   it('shows an error and retries failed data requests', async () => {

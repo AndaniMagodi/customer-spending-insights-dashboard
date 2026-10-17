@@ -47,9 +47,9 @@ src/
 
 ## Data and API boundary
 
-The supplied endpoint contract informed the TypeScript response types and request paths in `src/features/spending/api/spendingApi.ts`. The profile and 30-day summary/category values follow its examples. Those examples do not include complete datasets for every period, so the 7-day, 90-day, and 1-year responses, monthly trend history, and additional transaction rows are illustrative mock fixtures. All displayed amounts are ZAR.
+The supplied endpoint contract informed the TypeScript response types and request paths in `src/features/spending/api/spendingApi.ts`. The profile and 30-day summary/category amounts follow its examples. The supplied 30-day category transaction counts add to 53 while the summary reports 47; the fixture counts are adjusted to add to 47, while the sample amounts and percentages are retained. The 7-day, 90-day, and 1-year responses, monthly trend history, and transaction rows are illustrative mock fixtures. Transaction rows are representative samples rather than a complete ledger, so their count does not represent the aggregate KPI. All displayed amounts are ZAR.
 
-With no `VITE_API_URL` configured, the app uses those local fixtures and a short simulated network delay. To connect an API, set `VITE_API_URL` to its base URL; the client then requests the documented `/api/customers/...` endpoints. The demo fixtures are not live customer or bank data.
+With no `VITE_API_URL` configured, the app uses those local fixtures and a short simulated network delay. To connect an API, set `VITE_API_URL` to its base URL; the client then requests the documented `/api/customers/...` endpoints. Category, date-range, and sort filters are sent to the transaction endpoint; text search runs in the browser over the loaded results because the supplied contract does not define a search parameter. The demo fixtures are not live customer or bank data.
 
 ## Features
 
@@ -57,5 +57,6 @@ With no `VITE_API_URL` configured, the app uses those local fixtures and a short
 - Period-aware summary, category, and transaction views
 - Responsive navigation with keyboard dismissal and active-section announcements
 - Accessible loading, retryable error, and chart empty states
-- Transaction search, category filtering, and pagination over loaded results
+- Transaction search, category/date filters, sorting, and pagination over loaded results
+- Lazy-loaded charts to keep the initial dashboard bundle smaller
 - Typed API boundary with local mock data or an optional API base URL

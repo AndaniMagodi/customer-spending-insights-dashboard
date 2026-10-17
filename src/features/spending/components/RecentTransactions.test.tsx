@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { RecentTransactions } from './RecentTransactions'
-import type { Transaction } from '../types'
+import type { Transaction, TransactionFilters } from '../types'
 
 const transactions: Transaction[] = Array.from({ length: 7 }, (_, index) => ({
   id: `txn-${index + 1}`,
@@ -16,10 +16,18 @@ const transactions: Transaction[] = Array.from({ length: 7 }, (_, index) => ({
   categoryColor: '#087e69',
 }))
 
+const initialFilters: TransactionFilters = { category: null, startDate: '', endDate: '', sortBy: 'date_desc' }
+
+function renderTransactions() {
+  const onFiltersChange = vi.fn()
+  render(<RecentTransactions transactions={transactions} categories={['Dining', 'Groceries']} filters={initialFilters} onFiltersChange={onFiltersChange} />)
+  return onFiltersChange
+}
+
 describe('RecentTransactions', () => {
   it('paginates loaded transactions and disables navigation at the boundaries', async () => {
     const user = userEvent.setup()
-    render(<RecentTransactions transactions={transactions} />)
+    renderTransactions()
 
     expect(screen.getByText('Merchant 1')).toBeInTheDocument()
     expect(screen.getByText('Merchant 5')).toBeInTheDocument()
@@ -37,7 +45,7 @@ describe('RecentTransactions', () => {
 
   it('searches merchant, category, and description and resets to the first page', async () => {
     const user = userEvent.setup()
-    render(<RecentTransactions transactions={transactions} />)
+    renderTransactions()
     await user.click(screen.getByRole('button', { name: /next/i }))
 
     await user.type(screen.getByRole('searchbox', { name: /search loaded transactions/i }), 'Purchase 2')
@@ -47,16 +55,13 @@ describe('RecentTransactions', () => {
     expect(screen.getByText('Showing 1–1 of 1 loaded transactions')).toBeInTheDocument()
   })
 
-  it('filters by category and presents an empty message when nothing matches', async () => {
+  it('requests category filtering and presents an empty message when search has no matches', async () => {
     const user = userEvent.setup()
-    render(<RecentTransactions transactions={transactions} />)
+    const onFiltersChange = renderTransactions()
 
     await user.selectOptions(screen.getByRole('combobox', { name: /filter by transaction category/i }), 'Dining')
 
-    expect(screen.getByText('Merchant 2')).toBeInTheDocument()
-    expect(screen.getByText('Merchant 4')).toBeInTheDocument()
-    expect(screen.getByText('Merchant 6')).toBeInTheDocument()
-    expect(screen.queryByText('Merchant 1')).not.toBeInTheDocument()
+    expect(onFiltersChange).toHaveBeenCalledWith({ ...initialFilters, category: 'Dining' })
 
     await user.type(screen.getByRole('searchbox', { name: /search loaded transactions/i }), 'does not exist')
     expect(screen.getByText('No transactions match these filters.')).toBeInTheDocument()

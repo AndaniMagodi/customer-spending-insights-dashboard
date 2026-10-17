@@ -60,6 +60,20 @@ export interface Transaction {
   categoryColor: string
 }
 
+export type TransactionSortBy = 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc'
+
+export interface TransactionFilters {
+  category: string | null
+  startDate: string
+  endDate: string
+  sortBy: TransactionSortBy
+}
+
+export interface TransactionQueryOptions extends Partial<TransactionFilters> {
+  limit?: number
+  offset?: number
+}
+
 export interface TransactionsResponse {
   transactions: Transaction[]
   pagination: {
