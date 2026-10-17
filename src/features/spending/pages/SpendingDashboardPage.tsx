@@ -88,7 +88,7 @@ export function SpendingDashboardPage() {
             <div className="space-y-3">
               {categories.data ? <>
                 {categories.isError && <QuerySectionState label="Category breakdown" loading={false} error={categories.error} onRetry={() => void categories.refetch()} />}
-                <Suspense fallback={<div aria-hidden="true" className="h-80 animate-pulse rounded-2xl bg-slate-200" />}><CategoryBreakdown categories={categories.data.categories} /></Suspense>
+                <Suspense fallback={<div aria-hidden="true" className="h-80 animate-pulse rounded-2xl bg-slate-200" />}><CategoryBreakdown categories={categories.data.categories} dateRange={categories.data.dateRange} /></Suspense>
               </> : <QuerySectionState label="Category breakdown" loading={categories.isLoading} error={categories.error} onRetry={() => void categories.refetch()} />}
             </div>
           </section>
