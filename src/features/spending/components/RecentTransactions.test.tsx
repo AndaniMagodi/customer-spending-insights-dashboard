@@ -48,7 +48,7 @@ describe('RecentTransactions', () => {
     renderTransactions()
     await user.click(screen.getByRole('button', { name: /next/i }))
 
-    await user.type(screen.getByRole('searchbox', { name: /search loaded transactions/i }), 'Purchase 2')
+    await user.type(screen.getByRole('searchbox', { name: /search this page/i }), 'Purchase 2')
 
     expect(screen.getByText('Merchant 2')).toBeInTheDocument()
     expect(screen.queryByText('Merchant 6')).not.toBeInTheDocument()
@@ -63,7 +63,7 @@ describe('RecentTransactions', () => {
 
     expect(onFiltersChange).toHaveBeenCalledWith({ ...initialFilters, category: 'Dining' })
 
-    await user.type(screen.getByRole('searchbox', { name: /search loaded transactions/i }), 'does not exist')
+    await user.type(screen.getByRole('searchbox', { name: /search this page/i }), 'does not exist')
     expect(screen.getByText('No transactions match these filters.')).toBeInTheDocument()
     expect(screen.getByText('No matching transactions')).toBeInTheDocument()
   })

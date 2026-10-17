@@ -7,6 +7,8 @@ import {
   getCustomerProfile,
   getRecentTransactions,
   getSpendingCategories,
+  getSpendingFilters,
+  getSpendingGoals,
   getSpendingSummary,
   getSpendingTrends,
 } from '../api/spendingApi'
@@ -23,6 +25,8 @@ vi.mock('../api/spendingApi', () => ({
   getCustomerProfile: vi.fn(),
   getRecentTransactions: vi.fn(),
   getSpendingCategories: vi.fn(),
+  getSpendingFilters: vi.fn(),
+  getSpendingGoals: vi.fn(),
   getSpendingSummary: vi.fn(),
   getSpendingTrends: vi.fn(),
 }))
@@ -41,6 +45,15 @@ const categories: CategoriesResponse = {
   dateRange: { startDate: '2026-09-17', endDate: '2026-10-17' },
   totalAmount: 4250.75,
   categories: [{ name: 'Groceries', amount: 1250.3, percentage: 29.4, transactionCount: 15, color: '#087e69', icon: 'shopping-cart' }],
+}
+const filters = {
+  categories: [{ name: 'Groceries', color: '#087e69', icon: 'shopping-cart' }],
+  dateRangePresets: [
+    { label: 'Last 7 days', value: '7d' as const },
+    { label: 'Last 30 days', value: '30d' as const },
+    { label: 'Last 90 days', value: '90d' as const },
+    { label: 'Last year', value: '1y' as const },
+  ],
 }
 
 const trends: TrendsResponse = {
@@ -79,6 +92,8 @@ beforeEach(() => {
   vi.mocked(getCustomerProfile).mockResolvedValue(profile)
   vi.mocked(getSpendingSummary).mockImplementation(async (period) => createSummary(period))
   vi.mocked(getSpendingCategories).mockResolvedValue(categories)
+  vi.mocked(getSpendingFilters).mockResolvedValue(filters)
+  vi.mocked(getSpendingGoals).mockResolvedValue({ goals: [] })
   vi.mocked(getSpendingTrends).mockResolvedValue(trends)
   vi.mocked(getRecentTransactions).mockResolvedValue(transactions)
 })
@@ -106,7 +121,7 @@ describe('SpendingDashboardPage', () => {
 
     await waitFor(() => {
       expect(getSpendingSummary).toHaveBeenLastCalledWith('7d', expect.any(AbortSignal))
-      expect(getSpendingCategories).toHaveBeenLastCalledWith('7d', expect.any(AbortSignal))
+      expect(getSpendingCategories).toHaveBeenLastCalledWith('7d', {}, expect.any(AbortSignal))
       expect(getRecentTransactions).toHaveBeenLastCalledWith('7d', expect.objectContaining({ limit: 5, offset: 0, sortBy: 'date_desc' }), expect.any(AbortSignal))
     })
   })
@@ -139,12 +154,12 @@ describe('SpendingDashboardPage', () => {
     renderDashboard()
     await screen.findByText('Pick n Pay')
 
-    const search = screen.getByRole('searchbox', { name: /search loaded transactions/i })
+    const search = screen.getByRole('searchbox', { name: /search this page/i })
     await user.type(search, 'Pick')
     await user.selectOptions(screen.getByRole('combobox', { name: /filter by transaction category/i }), 'Groceries')
 
     expect(screen.getByRole('heading', { name: 'Spending overview' })).toBeInTheDocument()
-    expect(screen.getByRole('searchbox', { name: /search loaded transactions/i })).toHaveValue('Pick')
+    expect(screen.getByRole('searchbox', { name: /search this page/i })).toHaveValue('Pick')
   })
 
   it('shows an error and retries failed data requests', async () => {
@@ -154,10 +169,10 @@ describe('SpendingDashboardPage', () => {
       .mockResolvedValue(createSummary('30d'))
     renderDashboard()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Network unavailable')
+    expect(await screen.findByRole('alert', { name: 'Spending summary' })).toHaveTextContent('Network unavailable')
     await user.click(screen.getByRole('button', { name: 'Try again' }))
 
     await screen.findByText('Pick n Pay')
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert', { name: 'Spending summary' })).not.toBeInTheDocument()
   })
 })
