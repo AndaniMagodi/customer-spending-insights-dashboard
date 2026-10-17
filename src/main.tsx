@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
+import { loadAppConfig } from './appConfig'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -14,10 +15,33 @@ const queryClient = new QueryClient({
   },
 })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </React.StrictMode>,
-)
+async function bootstrap() {
+  const rootElement = document.getElementById('root')
+  if (!rootElement) throw new Error('Application root element was not found.')
+  const root = ReactDOM.createRoot(rootElement)
+  try {
+    const config = await loadAppConfig()
+    window.__APP_CONFIG__ = config
+    if (config.mockApi) {
+      const { worker } = await import('./features/spending/mocks/browser')
+      await worker.start({ onUnhandledFrame: 'bypass' })
+    }
+
+    root.render(
+      <React.StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </React.StrictMode>,
+    )
+  } catch {
+    root.render(
+      <main className="mx-auto max-w-lg p-8 text-slate-900">
+        <h1 className="text-xl font-semibold">Spending insights is unavailable</h1>
+        <p className="mt-2 text-sm text-slate-600">The application configuration could not be loaded. Refresh the page or contact support.</p>
+      </main>,
+    )
+  }
+}
+
+void bootstrap()
