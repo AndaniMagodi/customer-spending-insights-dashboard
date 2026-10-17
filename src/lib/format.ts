@@ -1,0 +1,11 @@
+const currencyFormatter = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' })
+const roundedCurrencyFormatter = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 })
+const transactionDateFormatter = new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })
+const compactDateFormatter = new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short' })
+const monthFormatter = new Intl.DateTimeFormat('en-ZA', { month: 'short' })
+
+export const formatCurrency = (value: number) => currencyFormatter.format(value)
+export const formatRoundedCurrency = (value: number) => roundedCurrencyFormatter.format(value)
+export const formatTransactionDate = (value: string) => transactionDateFormatter.format(new Date(value))
+export const formatCompactDate = (value: string) => compactDateFormatter.format(new Date(value))
+export const formatMonth = (value: string) => monthFormatter.format(new Date(`${value}-01T00:00:00`))

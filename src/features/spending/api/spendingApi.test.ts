@@ -1,8 +1,19 @@
+import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { getRecentTransactions, getSpendingCategories, getSpendingSummary } from './spendingApi'
+import { getCustomerProfile, getRecentTransactions, getSpendingCategories, getSpendingSummary } from './spendingApi'
+import { server } from '../mocks/server'
 import type { SpendingPeriod } from '../types'
 
-describe('spending mock fixtures', () => {
+describe('spending API client and mock handlers', () => {
+  it('fetches and validates the customer profile through the mock HTTP handler', async () => {
+    await expect(getCustomerProfile()).resolves.toMatchObject({ customerId: '12345', currency: 'ZAR' })
+  })
+
+  it('rejects malformed API responses instead of trusting a TypeScript cast', async () => {
+    server.use(http.get('*/api/customers/12345/profile', () => HttpResponse.json({ customerId: '12345' })))
+    await expect(getCustomerProfile()).rejects.toThrow()
+  })
+
   it('keeps aggregate totals, averages, and category counts internally consistent', async () => {
     const periods: SpendingPeriod[] = ['7d', '30d', '90d', '1y']
 

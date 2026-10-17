@@ -67,4 +67,16 @@ describe('RecentTransactions', () => {
     expect(screen.getByText('No transactions match these filters.')).toBeInTheDocument()
     expect(screen.getByText('No matching transactions')).toBeInTheDocument()
   })
+
+  it('reveals transaction details on both mobile and desktop layouts', async () => {
+    const user = userEvent.setup()
+    renderTransactions()
+
+    const detailsButton = screen.getByRole('button', { name: 'Merchant 1 transaction details' })
+    await user.click(detailsButton)
+
+    expect(detailsButton).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('Purchase 1')).toBeInTheDocument()
+    expect(screen.getByText('Purchase 1').parentElement).toHaveTextContent('Credit Card')
+  })
 })

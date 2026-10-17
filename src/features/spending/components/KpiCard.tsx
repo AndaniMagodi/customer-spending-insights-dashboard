@@ -22,7 +22,7 @@ export function KpiCard({ title, value, detail, icon: Icon, change, featured = f
       </div>
       <p className={`mt-4 break-words text-xl font-bold tracking-tight sm:text-2xl ${featured ? 'text-white' : 'text-slate-900'}`}>{value}</p>
       <div className={`mt-2 flex items-center gap-1.5 text-xs ${featured ? 'text-emerald-100/75' : 'text-slate-500'}`}>
-        {change !== undefined && <span className={`font-semibold ${featured ? (change > 0 ? 'text-amber-200' : 'text-emerald-100') : (change > 0 ? 'text-amber-700' : 'text-emerald-700')}`}>{change > 0 ? '↑' : '↓'} {Math.abs(change)}%</span>}
+        {change !== undefined && <span className={`font-semibold ${change === 0 ? 'text-slate-400' : featured ? (change > 0 ? 'text-amber-200' : 'text-emerald-100') : (change > 0 ? 'text-amber-700' : 'text-emerald-700')}`}>{change > 0 ? '↑ +' : change < 0 ? '↓ ' : '→ '}{Math.abs(change)}%</span>}
         <span className="min-w-0">{detail}</span>
       </div>
     </article>
