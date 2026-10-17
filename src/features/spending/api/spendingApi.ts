@@ -95,8 +95,12 @@ const transactions: TransactionsResponse = {
   transactions: [
     { id: 'txn_123456', date: '2026-10-16T14:30:00Z', merchant: 'Pick n Pay', category: 'Groceries', amount: 245.8, description: 'Weekly groceries', paymentMethod: 'Credit Card', icon: 'shopping-cart', categoryColor: '#087e69' },
     { id: 'txn_123457', date: '2026-10-15T10:15:00Z', merchant: 'Netflix', category: 'Entertainment', amount: 199, description: 'Monthly subscription', paymentMethod: 'Debit Order', icon: 'film', categoryColor: '#3b9c83' },
+    { id: 'txn_123465', date: '2026-10-14T12:30:00Z', merchant: 'Woolworths Food', category: 'Dining', amount: 184.5, description: 'Lunch with a colleague', paymentMethod: 'Credit Card', icon: 'utensils', categoryColor: '#a5d2c4' },
+    { id: 'txn_123466', date: '2026-10-11T09:05:00Z', merchant: 'City Utilities', category: 'Utilities', amount: 325, description: 'Municipal services', paymentMethod: 'Debit Order', icon: 'zap', categoryColor: '#d9ece5' },
     { id: 'txn_123458', date: '2026-10-05T17:40:00Z', merchant: 'Shell', category: 'Transportation', amount: 620, description: 'Fuel', paymentMethod: 'Credit Card', icon: 'car', categoryColor: '#73bba7' },
+    { id: 'txn_123467', date: '2026-10-02T15:10:00Z', merchant: 'Mr Price', category: 'Shopping', amount: 279.99, description: 'Clothing purchase', paymentMethod: 'Credit Card', icon: 'shopping-bag', categoryColor: '#c3e1d7' },
     { id: 'txn_123459', date: '2026-09-29T12:05:00Z', merchant: 'Woolworths', category: 'Groceries', amount: 384.5, description: 'Household shopping', paymentMethod: 'Credit Card', icon: 'shopping-cart', categoryColor: '#087e69' },
+    { id: 'txn_123468', date: '2026-09-24T18:20:00Z', merchant: 'Uber', category: 'Transportation', amount: 156.75, description: 'Ride home', paymentMethod: 'Credit Card', icon: 'car', categoryColor: '#73bba7' },
     { id: 'txn_123460', date: '2026-09-18T08:25:00Z', merchant: 'vida e caffè', category: 'Dining', amount: 78, description: 'Coffee', paymentMethod: 'Credit Card', icon: 'utensils', categoryColor: '#a5d2c4' },
     { id: 'txn_123461', date: '2026-08-25T11:00:00Z', merchant: 'Checkers', category: 'Groceries', amount: 512.4, description: 'Monthly groceries', paymentMethod: 'Credit Card', icon: 'shopping-cart', categoryColor: '#087e69' },
     { id: 'txn_123462', date: '2026-07-30T16:45:00Z', merchant: 'Engen', category: 'Transportation', amount: 730, description: 'Fuel', paymentMethod: 'Credit Card', icon: 'car', categoryColor: '#73bba7' },
@@ -141,13 +145,16 @@ export function getRecentTransactions(period: SpendingPeriod, limit = 10) {
     const transactionDate = item.date.slice(0, 10)
     return transactionDate >= startDate && transactionDate <= endDate
   })
+  filtered.sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
   const mockResponse: TransactionsResponse = {
     transactions: filtered.slice(0, limit),
     pagination: {
-      total: summaryFixtures[period].transactionCount,
+      // The demo only includes a sample of the period's activity. Report the
+      // number actually available in this fixture instead of the aggregate KPI.
+      total: filtered.length,
       limit,
       offset: 0,
-      hasMore: summaryFixtures[period].transactionCount > filtered.length,
+      hasMore: filtered.length > limit,
     },
   }
   return getJson<TransactionsResponse>(`/api/customers/${customerId}/transactions?${query}`, mockResponse)
