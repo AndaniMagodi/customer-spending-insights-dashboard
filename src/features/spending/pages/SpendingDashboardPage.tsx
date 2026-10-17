@@ -19,7 +19,9 @@ export function SpendingDashboardPage() {
   const summary = useQuery({ queryKey: ['spending-summary', period], queryFn: () => getSpendingSummary(period) })
   const categories = useQuery({ queryKey: ['spending-categories', period], queryFn: () => getSpendingCategories(period) })
   const trends = useQuery({ queryKey: ['spending-trends', trendMonths], queryFn: () => getSpendingTrends(trendMonths) })
-  const transactions = useQuery({ queryKey: ['spending-transactions', period], queryFn: () => getRecentTransactions(period, 10) })
+  // The API contract caps a page at 100. The table searches and paginates the
+  // rows in that loaded response; search is not part of the supplied endpoint.
+  const transactions = useQuery({ queryKey: ['spending-transactions', period], queryFn: () => getRecentTransactions(period, 100) })
 
   const isPending = profile.isPending || summary.isPending || categories.isPending || trends.isPending || transactions.isPending
   const error = profile.error || summary.error || categories.error || trends.error || transactions.error
@@ -41,7 +43,7 @@ export function SpendingDashboardPage() {
               <SpendingTrendChart trends={trends.data.trends} />
               <CategoryBreakdown categories={categories.data.categories} />
             </section>
-            <section id="transactions"><RecentTransactions transactions={transactions.data.transactions} /></section>
+            <section id="transactions"><RecentTransactions key={period} transactions={transactions.data.transactions} /></section>
             <p className="text-xs text-slate-400">Demonstration data · Amounts shown in South African rand (ZAR)</p>
           </div>
         ) : null}
