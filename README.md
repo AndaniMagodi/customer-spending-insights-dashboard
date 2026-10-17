@@ -27,7 +27,10 @@ Open http://localhost:8080. Nginx serves the optimized static build on port 8080
 ```sh
 npm run build
 npm run lint
+npm run test
 ```
+
+Run tests in watch mode while developing with `npm run test:watch`. The interaction tests use Vitest, Testing Library, and jsdom; they cover period changes, transaction search and filtering, pagination, loading and retry states, chart empty states, and keyboard dismissal of mobile navigation.
 
 ## Project structure
 
