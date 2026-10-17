@@ -1,11 +1,18 @@
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { getCustomerProfile, getRecentTransactions, getSpendingCategories, getSpendingSummary } from './spendingApi'
+import { getCustomerProfile, getRecentTransactions, getSpendingCategories, getSpendingSummary, resolveApiRequestUrl } from './spendingApi'
 import { server } from '../mocks/server'
 import type { SpendingPeriod } from '../types'
 import { GoalsResponseSchema } from './schemas'
 
 describe('spending API client and mock handlers', () => {
+  it('keeps mock requests inside the application scope on subpath deployments', () => {
+    expect(resolveApiRequestUrl('/api/customers/12345/profile', '', '/customer-spending-insights-dashboard/'))
+      .toBe('/customer-spending-insights-dashboard/api/customers/12345/profile')
+    expect(resolveApiRequestUrl('/api/customers/12345/profile', 'https://api.example.com/', '/customer-spending-insights-dashboard/'))
+      .toBe('https://api.example.com/api/customers/12345/profile')
+  })
+
   it('derives a safe goal status when the API returns a new status value', () => {
     const result = GoalsResponseSchema.parse({ goals: [
       { id: 'goal-1', category: 'Groceries', monthlyBudget: 1000, currentSpent: 1200, percentageUsed: 120, daysRemaining: 0, status: 'exceeded' },

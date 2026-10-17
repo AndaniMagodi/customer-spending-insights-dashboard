@@ -12,9 +12,13 @@ import type { SpendingPeriod, TransactionQueryOptions } from '../types'
 import { getPeriodDateRange } from '../../../lib/dateRanges'
 
 const customerId = '12345'
-const getApiBaseUrl = () => window.__APP_CONFIG__?.apiUrl.replace(/\/$/, '') ?? ''
+export function resolveApiRequestUrl(path: string, apiUrl: string, baseUrl: string) {
+  const base = apiUrl.replace(/\/$/, '') || baseUrl.replace(/\/$/, '')
+  return `${base}${path}`
+}
+
 async function getJson<T>(path: string, schema: { parse: (value: unknown) => T }, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, { signal, headers: { Accept: 'application/json' } })
+  const response = await fetch(resolveApiRequestUrl(path, window.__APP_CONFIG__?.apiUrl ?? '', import.meta.env.BASE_URL), { signal, headers: { Accept: 'application/json' } })
   if (!response.ok) throw new Error(`Request failed (${response.status})`)
   return schema.parse(await response.json())
 }
