@@ -10,6 +10,9 @@ permissions:
 
 jobs:
   quality:
+    permissions:
+      contents: read
+      pages: read
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -43,3 +46,27 @@ jobs:
           done
           curl --fail --silent --show-error http://localhost:8080/config.json | grep -q '"mockApi":true'
           curl --fail --silent --show-error --head http://localhost:8080/mockServiceWorker.js | grep -qi '^Cache-Control: no-cache'
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Build GitHub Pages site
+        run: npm run build
+        env:
+          DEPLOY_TARGET: github-pages
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: quality
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
