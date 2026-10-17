@@ -7,12 +7,14 @@ export function CategoryBreakdown({ categories }: { categories: SpendingCategory
   return (
     <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4"><h2 className="font-semibold text-slate-900">Spending by category</h2><p className="mt-1 text-xs text-slate-500">Category share for this period</p></div>
-      <div className="flex flex-col items-center gap-4 sm:flex-row xl:flex-col 2xl:flex-row">
+      {categories.length === 0 ? (
+        <p role="status" className="grid min-h-52 place-items-center text-center text-sm text-slate-500">No category spending is available for this period.</p>
+      ) : <div className="flex flex-col items-center gap-4 sm:flex-row xl:flex-col 2xl:flex-row">
         <div className="h-52 w-full max-w-56 shrink-0" role="img" aria-label="Donut chart showing spending by category">
           <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categories} dataKey="amount" nameKey="name" innerRadius={62} outerRadius={88} paddingAngle={2} stroke="none">{categories.map((item) => <Cell key={item.name} fill={item.color} />)}</Pie><Tooltip formatter={(value) => currency(Number(value))} /></PieChart></ResponsiveContainer>
         </div>
         <ul className="w-full space-y-3">{categories.map((item) => <li key={item.name} className="flex items-center gap-2 text-xs"><span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} /><span className="min-w-0 flex-1 truncate text-slate-600">{item.name}</span><span className="font-semibold text-slate-800">{currency(item.amount)}</span></li>)}</ul>
-      </div>
+      </div>}
     </section>
   )
 }
