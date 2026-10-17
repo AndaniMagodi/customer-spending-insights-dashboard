@@ -29,3 +29,17 @@ jobs:
         run: npm run build
       - name: Audit dependencies
         run: npm audit --audit-level=high
+      - name: Build Docker image
+        run: docker build --tag customer-spending-insights-dashboard:ci .
+      - name: Run container smoke test
+        run: |
+          container_id=$(docker run --detach --publish 8080:8080 customer-spending-insights-dashboard:ci)
+          trap 'docker rm --force "$container_id" >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://localhost:8080/ --output /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent --show-error http://localhost:8080/config.json | grep -q '"mockApi":true'
+          curl --fail --silent --show-error --head http://localhost:8080/mockServiceWorker.js | grep -qi '^Cache-Control: no-cache'

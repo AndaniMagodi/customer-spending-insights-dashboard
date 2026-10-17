@@ -13,6 +13,8 @@ npm run dev
 
 The local config at `public/config.json` enables the MSW demo API by default. To connect to a real API during local development, set `apiUrl` to its base URL and `mockApi` to `false` in that file. Vite serves the file at runtime, so no rebuild is needed after changing it.
 
+The dashboard is available at http://localhost:5173 after starting Vite. The repository does not include a hosted demo; the same production image can be previewed locally on port 8080 with Docker.
+
 ## Docker
 
 ```sh
@@ -39,7 +41,7 @@ npm run build
 npm audit --audit-level=high
 ```
 
-The GitHub Actions workflow runs all four checks for pull requests and pushes to `main`.
+The GitHub Actions workflow runs lint, tests, build, dependency audit, Docker build, and a container HTTP smoke test for pull requests and pushes to `main`.
 
 ## Project structure
 
@@ -58,13 +60,13 @@ src/
 
 ## Data and API boundary
 
-The API client requests the supplied customer profile, spending summary, category, monthly trend, and transaction endpoints. Responses are validated at runtime with Zod. Query cancellation signals are passed to `fetch`, and TanStack Query retains previous results while a filter request is in flight.
+The API client requests all seven supplied endpoints: profile, summary, categories, monthly trends, transactions, spending goals, and available filters. Category and transaction icon/color metadata is rendered in the dashboard. Responses are validated at runtime with Zod. Query cancellation signals are passed to `fetch`, and TanStack Query retains previous results while a filter request is in flight. Preset transaction windows are calculated relative to the current local date; category requests also include a custom date range when one is applied.
 
 MSW provides the sample API in local development and tests. Tests use the same request handlers as the browser worker, so they exercise the fetch client and response validation instead of returning fixtures directly from the API module. Fixtures are isolated under `src/features/spending/mocks/` and loaded in a separate chunk when mock mode is enabled.
 
-The profile and 30-day summary/category examples follow the supplied endpoint contract. The supplied 30-day category transaction counts add to 53 while the summary reports 47; fixture counts are adjusted to add to 47 while the sample amounts and percentages are retained. Other period aggregates, monthly trend history, and transaction rows are illustrative. Transaction rows are representative samples rather than a complete ledger, so their count does not represent the aggregate KPI. All displayed amounts are ZAR.
+The profile and 30-day summary/category examples follow the supplied endpoint contract. The supplied 30-day category transaction counts add to 53 while the summary reports 47; fixture counts are adjusted to add to 47 while the sample amounts and percentages are retained. Other period aggregates, monthly trend history, goals, and transaction rows are illustrative. Fixture dates are shifted relative to the current date so period views remain current over time. Transaction rows are representative samples rather than a complete ledger, so their count does not represent the aggregate KPI. For a custom date range, the MSW category response aggregates the representative transaction rows; a production backend should calculate this from the full account ledger. All displayed amounts are ZAR.
 
-Text search filters the transactions currently loaded for the selected server page; category, date, and sort options are sent to the transaction endpoint. The pagination controls use the API's `total` and `hasMore` fields, so additional records are not silently discarded after a fixed first-page limit.
+Text search is intentionally labeled **Search this page** and filters transactions currently loaded for the selected server page; category, date, and sort options are sent to the transaction endpoint. The category chart also honors the custom date range, while summary KPIs and trends continue to represent the selected preset because those endpoints do not accept custom dates. The pagination controls use the API's `total` and `hasMore` fields, so additional records are not silently discarded after a fixed first-page limit.
 
 ## Security and deployment notes
 
@@ -78,3 +80,9 @@ The Nginx container uses a non-root user, gzip compression, and security headers
 - Accessible loading, section-level error and retry, empty, and reduced-motion states
 - Transaction search, category/date filters, server pagination, and sorting
 - Lazy-loaded charts, validated API responses, cancellable requests, and runtime API configuration
+
+## What I would do next
+
+- Add contract-level integration tests against a staging API and reconcile the aggregate totals with its source ledger.
+- Add authenticated customer selection and server-side search when the real service supports those capabilities.
+- Add goal editing and notifications after the goals API provides write operations and user preferences.
