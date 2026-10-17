@@ -25,16 +25,20 @@ export function SpendingDashboardPage() {
 
   const isPending = profile.isPending || summary.isPending || categories.isPending || trends.isPending || transactions.isPending
   const error = profile.error || summary.error || categories.error || trends.error || transactions.error
+  const retry = () => {
+    void Promise.all([profile.refetch(), summary.refetch(), categories.refetch(), trends.refetch(), transactions.refetch()])
+  }
 
   return (
     <DashboardShell customerName={profile.data?.name ?? 'Customer'}>
-      <main id="overview" className="mx-auto max-w-7xl px-4 pb-28 pt-7 sm:px-7 sm:pt-9 md:pb-10">
+      <main id="overview" aria-busy={isPending} className="mx-auto max-w-7xl px-4 pb-28 pt-7 sm:px-7 sm:pt-9 md:pb-10">
         <DashboardPageHeader period={period} onPeriodChange={setPeriod} />
 
         {isPending ? <DashboardSkeleton /> : error ? (
           <section role="alert" className="rounded-2xl border border-rose-200 bg-white p-6">
             <h2 className="font-semibold text-rose-900">Spending data is unavailable</h2>
             <p className="mt-2 text-sm text-slate-600">{error.message}</p>
+            <button type="button" onClick={retry} className="mt-4 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900">Try again</button>
           </section>
         ) : summary.data && categories.data && trends.data && transactions.data ? (
           <div className="space-y-5">

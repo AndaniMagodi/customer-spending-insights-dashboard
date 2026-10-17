@@ -52,5 +52,7 @@ With no `VITE_API_URL` configured, the app uses those local fixtures and a short
 
 - Summary metrics, category breakdown, monthly spending trends, and recent transactions
 - Period-aware summary, category, and transaction views
-- Responsive layout with loading and error states
+- Responsive navigation with keyboard dismissal and active-section announcements
+- Accessible loading, retryable error, and chart empty states
+- Transaction search, category filtering, and pagination over loaded results
 - Typed API boundary with local mock data or an optional API base URL
