@@ -36,6 +36,10 @@ npm run lint
 - `src/index.css` — global styles and design tokens
 - `Dockerfile` and `nginx.conf` — production image and static-file server
 
+## Engineering reference
+
+The project takes architectural cues from [Andani's Smart Parking System](https://github.com/AndaniMagodi/smart-parking-system): keep domain logic and UI concerns in clear boundaries, use explicit data types, document design choices, and include container and quality-check workflows. This dashboard is a frontend assessment with mocked data, so those ideas are adapted to a typed mock-data/API boundary rather than copying the parking app's backend or deployment setup.
+
 ## Assessment notes
 
 The initial screen includes summary metrics, category breakdown, monthly trend, and recent transactions. The supplied endpoint brief can guide mock-data types and filter behaviour as development continues. Replace illustrative figures with a clearly identified, internally consistent demo dataset before final submission.
