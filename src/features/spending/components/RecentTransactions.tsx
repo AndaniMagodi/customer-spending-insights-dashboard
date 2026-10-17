@@ -1,14 +1,15 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { formatCompactDate, formatCurrency, formatTransactionDate } from '../../../lib/format'
 import type { Transaction, TransactionFilters } from '../types'
 
-const PAGE_SIZE = 5
-const currency = (value: number) => new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(value)
-const date = (value: string) => new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
-const compactDate = (value: string) => new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short' }).format(new Date(value))
+export const TRANSACTIONS_PAGE_SIZE = 5
 
 interface RecentTransactionsProps {
   transactions: Transaction[]
+  pagination?: { total: number; limit: number; offset: number; hasMore: boolean }
+  page?: number
+  onPageChange?: (page: number) => void
   categories: string[]
   filters: TransactionFilters
   onFiltersChange: (filters: TransactionFilters) => void
@@ -16,20 +17,21 @@ interface RecentTransactionsProps {
 
 function TransactionRow({ transaction }: { transaction: Transaction }) {
   const [expanded, setExpanded] = useState(false)
+  const detailsId = `transaction-details-${transaction.id}`
   return <>
     <tr className="group border-t border-slate-100 transition-colors hover:bg-emerald-50/30">
-      <td className="w-[62%] px-4 py-3 font-semibold text-slate-800 sm:w-auto sm:whitespace-nowrap sm:py-4"><button type="button" className="block max-w-full text-left hover:text-emerald-800" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>{transaction.merchant}</button><span className="mt-1 block text-xs font-normal text-slate-500 sm:hidden" title={date(transaction.date)}>{transaction.category} · {compactDate(transaction.date)}</span></td>
+      <td className="w-[62%] px-4 py-3 font-semibold text-slate-800 sm:w-auto sm:whitespace-nowrap sm:py-4"><button type="button" className="block max-w-full text-left hover:text-emerald-800" aria-expanded={expanded} aria-controls={detailsId} aria-label={`${transaction.merchant} transaction details`} onClick={() => setExpanded((value) => !value)}>{transaction.merchant}</button><span className="mt-1 block text-xs font-normal text-slate-500 sm:hidden" title={formatTransactionDate(transaction.date)}>{transaction.category} · {formatCompactDate(transaction.date)}</span></td>
       <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{transaction.category}</td>
-      <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{date(transaction.date)}</td>
-      <td className="w-[38%] whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-slate-800 sm:w-auto sm:py-4">{currency(transaction.amount)}</td>
+      <td className="hidden whitespace-nowrap px-4 py-4 text-slate-600 sm:table-cell">{formatTransactionDate(transaction.date)}</td>
+      <td className="w-[38%] whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-slate-800 sm:w-auto sm:py-4">{formatCurrency(transaction.amount)}</td>
     </tr>
-    {expanded && <tr className="sm:hidden"><td colSpan={4} className="bg-slate-50 px-4 py-3 text-xs text-slate-600">{transaction.description} · {transaction.paymentMethod}</td></tr>}
+    <tr hidden={!expanded}><td id={detailsId} colSpan={4} className="bg-slate-50 px-4 py-3 text-xs text-slate-600"><span>{transaction.description}</span><span className="mx-2 text-slate-300" aria-hidden="true">·</span><span>{transaction.paymentMethod}</span></td></tr>
   </>
 }
 
-export function RecentTransactions({ transactions, categories, filters, onFiltersChange }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, pagination, page: controlledPage, onPageChange, categories, filters, onFiltersChange }: RecentTransactionsProps) {
   const [search, setSearch] = useState('')
-  const [page, setPage] = useState(0)
+  const [localPage, setLocalPage] = useState(0)
   const [draftStartDate, setDraftStartDate] = useState(filters.startDate)
   const [draftEndDate, setDraftEndDate] = useState(filters.endDate)
   const [dateError, setDateError] = useState('')
@@ -42,14 +44,21 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
     })
   }, [search, transactions])
 
-  const pageCount = Math.ceil(filteredTransactions.length / PAGE_SIZE)
-  const pageTransactions = filteredTransactions.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
-  const firstResult = filteredTransactions.length === 0 ? 0 : page * PAGE_SIZE + 1
-  const lastResult = Math.min((page + 1) * PAGE_SIZE, filteredTransactions.length)
+  const isServerPaginated = Boolean(pagination && controlledPage !== undefined && onPageChange)
+  const page = controlledPage ?? localPage
+  const pageCount = isServerPaginated ? Math.ceil((pagination?.total ?? 0) / TRANSACTIONS_PAGE_SIZE) : Math.ceil(filteredTransactions.length / TRANSACTIONS_PAGE_SIZE)
+  const pageTransactions = isServerPaginated ? filteredTransactions : filteredTransactions.slice(page * TRANSACTIONS_PAGE_SIZE, (page + 1) * TRANSACTIONS_PAGE_SIZE)
+  const firstResult = filteredTransactions.length === 0 ? 0 : (pagination?.offset ?? page * TRANSACTIONS_PAGE_SIZE) + 1
+  const lastResult = firstResult === 0 ? 0 : firstResult + pageTransactions.length - 1
+
+  function changePage(nextPage: number) {
+    if (isServerPaginated) onPageChange?.(nextPage)
+    else setLocalPage(nextPage)
+  }
 
   function updateFilters(next: TransactionFilters) {
     onFiltersChange(next)
-    setPage(0)
+    changePage(0)
   }
 
   function applyDateRange(event: FormEvent<HTMLFormElement>) {
@@ -88,7 +97,7 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
             <input
               type="search"
               value={search}
-              onChange={(event) => { setSearch(event.target.value); setPage(0) }}
+              onChange={(event) => { setSearch(event.target.value); changePage(0) }}
               placeholder="Search merchant or description"
               className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
             />
@@ -129,7 +138,7 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
             </label>
           </fieldset>
           <div className="flex gap-2 sm:shrink-0">
-            <button type="submit" className="flex-1 rounded-lg bg-emerald-800 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900 sm:flex-none sm:px-4">Apply</button>
+            <button type="submit" aria-label="Apply dates" className="flex-1 rounded-lg bg-emerald-800 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900 sm:flex-none sm:px-4">Apply</button>
             <button type="button" onClick={clearFilters} className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:flex-none sm:px-4">Clear</button>
           </div>
         </form>
@@ -148,14 +157,14 @@ export function RecentTransactions({ transactions, categories, filters, onFilter
       </div>
       <footer className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="text-xs text-slate-500" aria-live="polite">
-          {filteredTransactions.length === 0 ? 'No matching transactions' : `Showing ${firstResult}–${lastResult} of ${filteredTransactions.length} loaded transactions`}
+          {filteredTransactions.length === 0 ? 'No matching transactions' : isServerPaginated ? `Showing ${firstResult}–${lastResult} of ${pagination?.total ?? 0} transactions` : `Showing ${firstResult}–${lastResult} of ${filteredTransactions.length} loaded transactions`}
         </p>
         <nav aria-label="Transaction pages" className="flex items-center gap-2">
-          <button type="button" onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={page === 0} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+          <button type="button" onClick={() => changePage(Math.max(0, page - 1))} disabled={page === 0} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
             <ChevronLeft size={15} aria-hidden="true" /> Previous
           </button>
           <span className="min-w-16 text-center text-xs text-slate-500">{pageCount === 0 ? '0 / 0' : `${page + 1} / ${pageCount}`}</span>
-          <button type="button" onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))} disabled={page >= pageCount - 1} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+          <button type="button" onClick={() => changePage(Math.min(pageCount - 1, page + 1))} disabled={isServerPaginated ? !pagination?.hasMore : page >= pageCount - 1} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
             Next <ChevronRight size={15} aria-hidden="true" />
           </button>
         </nav>

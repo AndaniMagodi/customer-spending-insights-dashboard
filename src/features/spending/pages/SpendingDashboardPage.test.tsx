@@ -89,7 +89,7 @@ describe('SpendingDashboardPage', () => {
     vi.mocked(getCustomerProfile).mockImplementation(() => new Promise((resolve) => { resolveProfile = resolve }))
     renderDashboard()
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading spending data')
+    expect(screen.getByRole('status', { name: 'Loading spending summary' })).toBeInTheDocument()
     expect(screen.getByRole('main')).toHaveAttribute('aria-busy', 'true')
 
     resolveProfile?.(profile)
@@ -105,9 +105,9 @@ describe('SpendingDashboardPage', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'Spending period' }), '7d')
 
     await waitFor(() => {
-      expect(getSpendingSummary).toHaveBeenLastCalledWith('7d')
-      expect(getSpendingCategories).toHaveBeenLastCalledWith('7d')
-      expect(getRecentTransactions).toHaveBeenLastCalledWith('7d', expect.objectContaining({ limit: 100, sortBy: 'date_desc' }))
+      expect(getSpendingSummary).toHaveBeenLastCalledWith('7d', expect.any(AbortSignal))
+      expect(getSpendingCategories).toHaveBeenLastCalledWith('7d', expect.any(AbortSignal))
+      expect(getRecentTransactions).toHaveBeenLastCalledWith('7d', expect.objectContaining({ limit: 5, offset: 0, sortBy: 'date_desc' }), expect.any(AbortSignal))
     })
   })
 
@@ -117,10 +117,10 @@ describe('SpendingDashboardPage', () => {
     await screen.findByText('Pick n Pay')
 
     await user.selectOptions(screen.getByRole('combobox', { name: /filter by transaction category/i }), 'Groceries')
-    await waitFor(() => expect(getRecentTransactions).toHaveBeenLastCalledWith('30d', expect.objectContaining({ category: 'Groceries' })))
+    await waitFor(() => expect(getRecentTransactions).toHaveBeenLastCalledWith('30d', expect.objectContaining({ category: 'Groceries' }), expect.any(AbortSignal)))
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Sort transactions' }), 'amount_desc')
-    await waitFor(() => expect(getRecentTransactions).toHaveBeenLastCalledWith('30d', expect.objectContaining({ category: 'Groceries', sortBy: 'amount_desc' })))
+    await waitFor(() => expect(getRecentTransactions).toHaveBeenLastCalledWith('30d', expect.objectContaining({ category: 'Groceries', sortBy: 'amount_desc' }), expect.any(AbortSignal)))
 
     await user.type(screen.getByLabelText('From'), '2026-10-01')
     await user.type(screen.getByLabelText('To'), '2026-10-15')
@@ -131,7 +131,20 @@ describe('SpendingDashboardPage', () => {
       startDate: '2026-10-01',
       endDate: '2026-10-15',
       sortBy: 'amount_desc',
-    })))
+    }), expect.any(AbortSignal)))
+  })
+
+  it('keeps the dashboard and transaction search mounted while filters refresh', async () => {
+    const user = userEvent.setup()
+    renderDashboard()
+    await screen.findByText('Pick n Pay')
+
+    const search = screen.getByRole('searchbox', { name: /search loaded transactions/i })
+    await user.type(search, 'Pick')
+    await user.selectOptions(screen.getByRole('combobox', { name: /filter by transaction category/i }), 'Groceries')
+
+    expect(screen.getByRole('heading', { name: 'Spending overview' })).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: /search loaded transactions/i })).toHaveValue('Pick')
   })
 
   it('shows an error and retries failed data requests', async () => {
