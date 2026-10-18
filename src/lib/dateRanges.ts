@@ -1,6 +1,7 @@
 import type { SpendingPeriod } from '../features/spending/types'
 
 const lookbackDays: Record<SpendingPeriod, number> = { '7d': 6, '30d': 29, '90d': 89, '1y': 364 }
+const millisecondsPerDay = 86_400_000
 
 function toDateOnly(date: Date) {
   const year = date.getFullYear()
@@ -14,6 +15,25 @@ export function getPeriodDateRange(period: SpendingPeriod, today = new Date()) {
   const start = new Date(end)
   start.setDate(start.getDate() - lookbackDays[period])
   return { startDate: toDateOnly(start), endDate: toDateOnly(end) }
+}
+
+export function getInclusiveDateRangeDays(startDate: string, endDate: string) {
+  const [startYear, startMonth, startDay] = startDate.split('-').map(Number)
+  const [endYear, endMonth, endDay] = endDate.split('-').map(Number)
+  const start = Date.UTC(startYear, startMonth - 1, startDay)
+  const end = Date.UTC(endYear, endMonth - 1, endDay)
+  return Math.round((end - start) / millisecondsPerDay) + 1
+}
+
+export function getPreviousDateRange(startDate: string, endDate: string) {
+  const duration = getInclusiveDateRangeDays(startDate, endDate)
+  const [year, month, day] = startDate.split('-').map(Number)
+  const previousEnd = Date.UTC(year, month - 1, day) - millisecondsPerDay
+  const previousStart = previousEnd - (duration - 1) * millisecondsPerDay
+  return {
+    startDate: new Date(previousStart).toISOString().slice(0, 10),
+    endDate: new Date(previousEnd).toISOString().slice(0, 10),
+  }
 }
 
 export function shiftFixtureDate(value: string, referenceDate = '2026-10-17') {

@@ -14,7 +14,7 @@ function biggestMonthlyMovement(trends: SpendingTrend[]) {
   return biggest
 }
 
-export function SpendingSummaryCards({ summary, categories = [], trends = [] }: { summary: SpendingSummary; categories?: SpendingCategory[]; trends?: SpendingTrend[] }) {
+export function SpendingSummaryCards({ summary, categories = [], trends = [], daysInRange }: { summary: SpendingSummary; categories?: SpendingCategory[]; trends?: SpendingTrend[]; daysInRange?: number }) {
   const topCategory = categories.find((category) => category.name === summary.topCategory)
   const movement = biggestMonthlyMovement(trends)
 
@@ -30,7 +30,7 @@ export function SpendingSummaryCards({ summary, categories = [], trends = [] }: 
       <div aria-label="Additional spending insights" className="grid gap-3 sm:grid-cols-2">
         <article className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3">
           <p className="text-xs font-medium text-emerald-900/70">Average daily spend</p>
-          <p className="mt-1 text-sm font-semibold tabular-nums text-emerald-950">{formatCurrency(summary.totalSpent / periodDays[summary.period])}</p>
+          <p className="mt-1 text-sm font-semibold tabular-nums text-emerald-950">{formatCurrency(summary.totalSpent / (daysInRange ?? periodDays[summary.period]))}</p>
         </article>
         <article className="rounded-xl border border-slate-200 bg-white px-4 py-3">
           <p className="text-xs font-medium text-slate-500">Biggest monthly movement</p>

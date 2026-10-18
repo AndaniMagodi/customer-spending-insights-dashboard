@@ -6,7 +6,7 @@ export function SpendingTrendChart({ trends }: { trends: SpendingTrend[] }) {
   const data = trends.map((item) => ({ ...item, month: formatMonth(item.month) }))
   return (
     <section className="dashboard-surface min-w-0 rounded-2xl border bg-white p-5 sm:p-6">
-      <div className="mb-5"><h2 className="font-semibold tracking-tight text-slate-900">Spending trend</h2><p className="mt-1 text-xs text-slate-500">Monthly spend over time</p></div>
+      <div className="mb-5"><h2 className="font-semibold tracking-tight text-slate-900">Spending trend</h2><p className="mt-1 text-xs text-slate-500">Monthly spend · {data.length} months</p></div>
       {data.length === 0 ? (
         <p role="status" className="grid min-h-64 place-items-center text-center text-sm text-slate-500">No spending trend data is available yet.</p>
       ) : <div className="h-64 w-full" role="img" aria-label={`Area chart of monthly spending: ${data.map((item) => `${item.month} ${formatCurrency(item.totalSpent)}`).join(', ')}`}>

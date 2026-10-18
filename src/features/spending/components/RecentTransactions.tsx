@@ -90,7 +90,7 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
       <div className="space-y-4 px-5 py-5 sm:px-6">
         <div>
           <h2 id="transactions-title" className="font-semibold text-slate-900">Recent transactions</h2>
-          <p className="mt-1 text-xs text-slate-500">Search, category, and dates combine before results are paginated. Dashboard summaries use the selected spending period.</p>
+          <p className="mt-1 text-xs text-slate-500">Search and category narrow the list. The selected date window updates the summary and category chart as well.</p>
         </div>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-[minmax(12rem,1fr)_12rem_12rem]">
           <label className="relative col-span-2 block lg:col-span-1">
@@ -131,7 +131,7 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
         </div>
         <form onSubmit={applyDateRange} className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-end">
           <fieldset className="grid min-w-0 flex-1 grid-cols-2 gap-2.5 sm:gap-3">
-            <legend className="mb-2 text-xs font-semibold text-slate-600">Custom date range</legend>
+            <legend className="mb-2 text-xs font-semibold text-slate-600">Dashboard date range</legend>
             <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-600">From
               <input type="date" value={draftStartDate} max={draftEndDate || undefined} onChange={(event) => setDraftStartDate(event.target.value)} className="min-w-0 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm sm:px-3" />
             </label>
