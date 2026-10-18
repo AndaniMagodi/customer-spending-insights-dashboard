@@ -17,6 +17,7 @@ const initialTransactionFilters: TransactionFilters = {
   startDate: '',
   endDate: '',
   sortBy: 'date_desc',
+  search: '',
 }
 const fallbackPeriodPresets = [
   { label: 'Last 7 days', value: '7d' as const },

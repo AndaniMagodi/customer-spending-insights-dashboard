@@ -31,21 +31,22 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
 }
 
 export function RecentTransactions({ transactions, pagination, page: controlledPage, onPageChange, categories, filters, onFiltersChange }: RecentTransactionsProps) {
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState(filters.search ?? '')
   const [localPage, setLocalPage] = useState(0)
   const [draftStartDate, setDraftStartDate] = useState(filters.startDate)
   const [draftEndDate, setDraftEndDate] = useState(filters.endDate)
   const [dateError, setDateError] = useState('')
 
+  const isServerPaginated = Boolean(pagination && controlledPage !== undefined && onPageChange)
+  const searchText = isServerPaginated ? filters.search ?? '' : searchInput
   const filteredTransactions = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase()
+    const normalizedSearch = searchText.trim().toLocaleLowerCase()
     return transactions.filter((transaction) => {
       const searchableText = `${transaction.merchant} ${transaction.category} ${transaction.description}`.toLocaleLowerCase()
-      return !normalizedSearch || searchableText.includes(normalizedSearch)
+      return isServerPaginated || !normalizedSearch || searchableText.includes(normalizedSearch)
     })
-  }, [search, transactions])
+  }, [isServerPaginated, searchText, transactions])
 
-  const isServerPaginated = Boolean(pagination && controlledPage !== undefined && onPageChange)
   const page = controlledPage ?? localPage
   const pageCount = isServerPaginated ? Math.ceil((pagination?.total ?? 0) / TRANSACTIONS_PAGE_SIZE) : Math.ceil(filteredTransactions.length / TRANSACTIONS_PAGE_SIZE)
   const pageTransactions = isServerPaginated ? filteredTransactions : filteredTransactions.slice(page * TRANSACTIONS_PAGE_SIZE, (page + 1) * TRANSACTIONS_PAGE_SIZE)
@@ -77,11 +78,11 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
   }
 
   function clearFilters() {
-    setSearch('')
+    setSearchInput('')
     setDraftStartDate('')
     setDraftEndDate('')
     setDateError('')
-    updateFilters({ category: null, startDate: '', endDate: '', sortBy: 'date_desc' })
+    updateFilters({ category: null, startDate: '', endDate: '', sortBy: 'date_desc', search: '' })
   }
 
   return (
@@ -89,17 +90,17 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
       <div className="space-y-4 px-5 py-5 sm:px-6">
         <div>
           <h2 id="transactions-title" className="font-semibold text-slate-900">Recent transactions</h2>
-          <p className="mt-1 text-xs text-slate-500">Filters apply to this list. Text search checks the loaded rows; dashboard summaries use the selected spending period.</p>
+          <p className="mt-1 text-xs text-slate-500">Search, category, and dates combine before results are paginated. Dashboard summaries use the selected spending period.</p>
         </div>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-[minmax(12rem,1fr)_12rem_12rem]">
           <label className="relative col-span-2 block lg:col-span-1">
-            <span className="sr-only">Search this page</span>
+            <span className="sr-only">Search all transactions</span>
             <Search size={17} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
-              value={search}
-              onChange={(event) => { setSearch(event.target.value); changePage(0) }}
-              placeholder="Search this page"
+              value={searchText}
+              onChange={(event) => { setSearchInput(event.target.value); updateFilters({ ...filters, search: event.target.value }) }}
+              placeholder="Search all transactions"
               className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
             />
           </label>
@@ -143,6 +144,13 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
             <button type="button" onClick={clearFilters} className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:flex-none sm:px-4">Clear</button>
           </div>
         </form>
+        {(searchText.trim() || filters.category || filters.startDate || filters.endDate || filters.sortBy !== 'date_desc') && <div className="flex flex-wrap items-center gap-2" aria-label="Active transaction filters">
+          {searchText.trim() && <button type="button" onClick={() => { setSearchInput(''); updateFilters({ ...filters, search: '' }) }} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-950">Search: “{searchText.trim()}” <span aria-hidden="true">×</span><span className="sr-only">Remove search filter</span></button>}
+          {filters.category && <button type="button" onClick={() => updateFilters({ ...filters, category: null })} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-950">Category: {filters.category} <span aria-hidden="true">×</span><span className="sr-only">Remove category filter</span></button>}
+          {(filters.startDate || filters.endDate) && <button type="button" onClick={() => { setDraftStartDate(''); setDraftEndDate(''); updateFilters({ ...filters, startDate: '', endDate: '' }) }} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-950">Dates: {filters.startDate ? formatCompactDate(`${filters.startDate}T12:00:00`) : 'Any'} – {filters.endDate ? formatCompactDate(`${filters.endDate}T12:00:00`) : 'Any'} <span aria-hidden="true">×</span><span className="sr-only">Remove date filter</span></button>}
+          {filters.sortBy !== 'date_desc' && <button type="button" onClick={() => updateFilters({ ...filters, sortBy: 'date_desc' })} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700">Sort: {filters.sortBy.replace('_', ' ')} <span aria-hidden="true">×</span><span className="sr-only">Reset sort order</span></button>}
+          <button type="button" onClick={clearFilters} className="px-2 py-1 text-xs font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-900">Clear all</button>
+        </div>}
         {dateError && <p role="alert" className="text-xs text-rose-700">{dateError}</p>}
       </div>
       <div className="overflow-x-auto">

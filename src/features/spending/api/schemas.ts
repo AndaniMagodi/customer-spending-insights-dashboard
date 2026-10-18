@@ -107,6 +107,7 @@ export interface TransactionFilters {
   startDate: string
   endDate: string
   sortBy: TransactionSortBy
+  search?: string
 }
 
 export interface TransactionQueryOptions extends Partial<TransactionFilters> {

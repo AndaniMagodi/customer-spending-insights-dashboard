@@ -69,6 +69,7 @@ export const handlers = [
     const startDate = query.get('startDate') || range.startDate
     const endDate = query.get('endDate') || range.endDate
     const category = query.get('category')
+    const search = query.get('search')?.trim().toLocaleLowerCase() ?? ''
     const limit = Math.max(1, Number(query.get('limit')) || 10)
     const offset = Math.max(0, Number(query.get('offset')) || 0)
     const requestedSort = query.get('sortBy')
@@ -76,7 +77,8 @@ export const handlers = [
     const filtered = transactions
       .filter((item) => {
         const date = item.date.slice(0, 10)
-        return date >= startDate && date <= endDate && (!category || item.category === category)
+        const searchableText = `${item.merchant} ${item.category} ${item.description}`.toLocaleLowerCase()
+        return date >= startDate && date <= endDate && (!category || item.category === category) && (!search || searchableText.includes(search))
       })
       .sort((a, b) => compareTransactions(a, b, sortBy))
     return HttpResponse.json({
