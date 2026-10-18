@@ -6,7 +6,7 @@ Responsive React and TypeScript dashboard for exploring customer spending insigh
 
 ## Screenshots
 
-![Dashboard overview](docs/screenshots/dashboard-desktop.jpg)
+![Spending dashboard with the updated design, charts, transactions, and active filter controls](docs/screenshots/dashboard-desktop.jpg)
 
 ## Run locally
 
@@ -88,7 +88,7 @@ The Nginx container uses a non-root user, gzip compression, and security headers
 - Average daily spending, top category amount and share, and biggest monthly movement insights
 - Responsive navigation and transaction table with desktop and mobile row details
 - Accessible loading, section-level error and retry, empty, and reduced-motion states
-- Transaction search, category/date filters, server pagination, and sorting
+- Composable transaction search, category, amount, and date filters with server pagination and sorting
 - Lazy-loaded charts, validated API responses, cancellable requests, and runtime API configuration
 
 ## What I would do next
