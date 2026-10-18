@@ -154,12 +154,12 @@ describe('SpendingDashboardPage', () => {
     renderDashboard()
     await screen.findByText('Pick n Pay')
 
-    const search = screen.getByRole('searchbox', { name: /search this page/i })
+    const search = screen.getByRole('searchbox', { name: /search all transactions/i })
     await user.type(search, 'Pick')
     await user.selectOptions(screen.getByRole('combobox', { name: /filter by transaction category/i }), 'Groceries')
 
     expect(screen.getByRole('heading', { name: 'Spending overview' })).toBeInTheDocument()
-    expect(screen.getByRole('searchbox', { name: /search this page/i })).toHaveValue('Pick')
+    expect(screen.getByRole('searchbox', { name: /search all transactions/i })).toHaveValue('Pick')
   })
 
   it('shows an error and retries failed data requests', async () => {
