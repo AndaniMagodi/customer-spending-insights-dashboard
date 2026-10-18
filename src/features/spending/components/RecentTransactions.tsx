@@ -36,6 +36,9 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
   const [draftStartDate, setDraftStartDate] = useState(filters.startDate)
   const [draftEndDate, setDraftEndDate] = useState(filters.endDate)
   const [dateError, setDateError] = useState('')
+  const [draftAmountMin, setDraftAmountMin] = useState(filters.amountMin ?? '')
+  const [draftAmountMax, setDraftAmountMax] = useState(filters.amountMax ?? '')
+  const [amountError, setAmountError] = useState('')
 
   const isServerPaginated = Boolean(pagination && controlledPage !== undefined && onPageChange)
   const searchText = isServerPaginated ? filters.search ?? '' : searchInput
@@ -77,12 +80,31 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
     updateFilters({ ...filters, startDate: draftStartDate, endDate: draftEndDate })
   }
 
+  function applyAmountRange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const minimum = draftAmountMin.trim() ? Number(draftAmountMin) : undefined
+    const maximum = draftAmountMax.trim() ? Number(draftAmountMax) : undefined
+    if ((minimum !== undefined && (!Number.isFinite(minimum) || minimum < 0)) || (maximum !== undefined && (!Number.isFinite(maximum) || maximum < 0))) {
+      setAmountError('Amounts must be zero or greater.')
+      return
+    }
+    if (minimum !== undefined && maximum !== undefined && minimum > maximum) {
+      setAmountError('The minimum amount must not exceed the maximum.')
+      return
+    }
+    setAmountError('')
+    updateFilters({ ...filters, amountMin: draftAmountMin.trim(), amountMax: draftAmountMax.trim() })
+  }
+
   function clearFilters() {
     setSearchInput('')
     setDraftStartDate('')
     setDraftEndDate('')
+    setDraftAmountMin('')
+    setDraftAmountMax('')
     setDateError('')
-    updateFilters({ category: null, startDate: '', endDate: '', sortBy: 'date_desc', search: '' })
+    setAmountError('')
+    updateFilters({ category: null, startDate: '', endDate: '', sortBy: 'date_desc', search: '', amountMin: '', amountMax: '' })
   }
 
   return (
@@ -144,10 +166,24 @@ export function RecentTransactions({ transactions, pagination, page: controlledP
             <button type="button" onClick={clearFilters} className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:flex-none sm:px-4">Clear</button>
           </div>
         </form>
-        {(searchText.trim() || filters.category || filters.startDate || filters.endDate || filters.sortBy !== 'date_desc') && <div className="flex flex-wrap items-center gap-2" aria-label="Active transaction filters">
+        <form onSubmit={applyAmountRange} className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-end">
+          <fieldset className="grid min-w-0 flex-1 grid-cols-2 gap-2.5 sm:gap-3">
+            <legend className="mb-2 text-xs font-semibold text-slate-600">Amount range</legend>
+            <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-600">Minimum
+              <input type="number" inputMode="decimal" min="0" step="0.01" value={draftAmountMin} onChange={(event) => setDraftAmountMin(event.target.value)} className="min-w-0 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm sm:px-3" placeholder="Any" />
+            </label>
+            <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-600">Maximum
+              <input type="number" inputMode="decimal" min="0" step="0.01" value={draftAmountMax} onChange={(event) => setDraftAmountMax(event.target.value)} className="min-w-0 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm sm:px-3" placeholder="Any" />
+            </label>
+          </fieldset>
+          <button type="submit" className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900">Apply amounts</button>
+        </form>
+        {amountError && <p role="alert" className="text-xs text-rose-700">{amountError}</p>}
+        {(searchText.trim() || filters.category || filters.startDate || filters.endDate || filters.amountMin || filters.amountMax || filters.sortBy !== 'date_desc') && <div className="flex flex-wrap items-center gap-2" aria-label="Active transaction filters">
           {searchText.trim() && <button type="button" onClick={() => { setSearchInput(''); updateFilters({ ...filters, search: '' }) }} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-950">Search: “{searchText.trim()}” <span aria-hidden="true">×</span><span className="sr-only">Remove search filter</span></button>}
           {filters.category && <button type="button" onClick={() => updateFilters({ ...filters, category: null })} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-950">Category: {filters.category} <span aria-hidden="true">×</span><span className="sr-only">Remove category filter</span></button>}
           {(filters.startDate || filters.endDate) && <button type="button" onClick={() => { setDraftStartDate(''); setDraftEndDate(''); updateFilters({ ...filters, startDate: '', endDate: '' }) }} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-950">Dates: {filters.startDate ? formatCompactDate(`${filters.startDate}T12:00:00`) : 'Any'} – {filters.endDate ? formatCompactDate(`${filters.endDate}T12:00:00`) : 'Any'} <span aria-hidden="true">×</span><span className="sr-only">Remove date filter</span></button>}
+          {(filters.amountMin || filters.amountMax) && <button type="button" onClick={() => { setDraftAmountMin(''); setDraftAmountMax(''); updateFilters({ ...filters, amountMin: '', amountMax: '' }) }} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-950">Amount: {filters.amountMin ? formatCurrency(Number(filters.amountMin)) : 'Any'} – {filters.amountMax ? formatCurrency(Number(filters.amountMax)) : 'Any'} <span aria-hidden="true">×</span><span className="sr-only">Remove amount filter</span></button>}
           {filters.sortBy !== 'date_desc' && <button type="button" onClick={() => updateFilters({ ...filters, sortBy: 'date_desc' })} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700">Sort: {filters.sortBy.replace('_', ' ')} <span aria-hidden="true">×</span><span className="sr-only">Reset sort order</span></button>}
           <button type="button" onClick={clearFilters} className="px-2 py-1 text-xs font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-900">Clear all</button>
         </div>}

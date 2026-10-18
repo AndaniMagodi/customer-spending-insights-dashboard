@@ -53,7 +53,7 @@ export function getSpendingTrends(months = 6, signal?: AbortSignal) {
 }
 
 export function getRecentTransactions(period: SpendingPeriod, options: TransactionQueryOptions = {}, signal?: AbortSignal) {
-  const { limit = 20, offset = 0, category, sortBy = 'date_desc', search } = options
+  const { limit = 20, offset = 0, category, sortBy = 'date_desc', search, amountMin, amountMax } = options
   const range = getPeriodDateRange(period)
   const query = new URLSearchParams({
     limit: String(Math.min(100, Math.max(1, limit))),
@@ -64,5 +64,7 @@ export function getRecentTransactions(period: SpendingPeriod, options: Transacti
   })
   if (category) query.set('category', category)
   if (search?.trim()) query.set('search', search.trim())
+  if (amountMin?.trim()) query.set('minAmount', amountMin.trim())
+  if (amountMax?.trim()) query.set('maxAmount', amountMax.trim())
   return getJson(`/api/customers/${customerId}/transactions?${query}`, TransactionsResponseSchema, signal)
 }

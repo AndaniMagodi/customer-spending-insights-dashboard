@@ -108,6 +108,8 @@ export interface TransactionFilters {
   endDate: string
   sortBy: TransactionSortBy
   search?: string
+  amountMin?: string
+  amountMax?: string
 }
 
 export interface TransactionQueryOptions extends Partial<TransactionFilters> {
