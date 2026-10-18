@@ -24,7 +24,7 @@ export function DashboardShell({ children, customerName }: { children: ReactNode
           key={linkLabel}
           href={href}
           aria-current={activeHref === href ? 'location' : undefined}
-          className={`flex rounded-xl text-sm font-medium transition-all duration-200 ${compact ? 'min-h-12 flex-col items-center justify-center gap-1 py-1 text-[10px]' : 'items-center gap-3 px-3 py-3'} ${activeHref === href ? 'bg-emerald-50 text-emerald-900 shadow-sm ring-1 ring-emerald-100' : 'text-slate-500 hover:translate-x-0.5 hover:bg-slate-50 hover:text-slate-900'}`}
+          className={`flex rounded-xl text-sm font-medium transition-all duration-200 ${compact ? 'min-h-12 flex-col items-center justify-center gap-1 py-1 text-[10px]' : 'items-center gap-3 px-3 py-3'} ${activeHref === href ? (compact ? 'bg-emerald-50 text-emerald-900 shadow-sm ring-1 ring-emerald-100' : 'bg-[#b7eb69] text-[#17392d] shadow-sm') : (compact ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' : 'text-emerald-50/65 hover:translate-x-0.5 hover:bg-white/10 hover:text-white')}`}
         >
           <Icon size={18} aria-hidden="true" />{linkLabel}
         </a>
@@ -34,30 +34,38 @@ export function DashboardShell({ children, customerName }: { children: ReactNode
 
   return (
     <div className="dashboard-background min-h-screen text-slate-900">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-slate-200 bg-white px-4 py-6 md:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-white/10 bg-[#102f27] px-4 py-6 text-white md:flex">
         <a href="#overview" className="mb-10 flex items-center gap-3 px-2">
-          <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-950 text-lg font-bold text-white shadow-md shadow-emerald-950/15" aria-hidden="true">S</span>
-          <span className="font-bold tracking-tight">Spending insights</span>
+          <span className="brand-mark grid size-10 place-items-center rounded-xl shadow-md shadow-black/15" aria-hidden="true"><span className="brand-mark-bars"><span /><span /><span /></span></span>
+          <span><span className="block font-bold tracking-tight">Spending insights</span><span className="mt-0.5 block text-[9px] font-semibold uppercase tracking-[0.2em] text-emerald-50/50">Personal money</span></span>
         </a>
+        <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-50/35">Your account</p>
         {navigation('Main navigation')}
+        <div className="mt-auto mx-2 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#b7eb69]">A clearer picture</p>
+          <p className="mt-2 text-xs leading-relaxed text-emerald-50/65">Small daily choices add up. Keep an eye on the patterns that matter to you.</p>
+          <div aria-hidden="true" className="mt-4 flex h-8 items-end gap-1">
+            {[35, 58, 44, 76, 55, 92, 68, 100].map((height, index) => <span key={index} className="flex-1 rounded-t-sm bg-[#b7eb69]/70" style={{ height: `${height}%` }} />)}
+          </div>
+        </div>
       </aside>
 
       <div className="md:pl-60">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 shadow-[0_1px_12px_rgba(20,47,43,0.04)] backdrop-blur-xl sm:px-7">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-[#dfe6dc] bg-[#f8f9f5]/95 px-4 backdrop-blur-xl sm:px-7">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-700 to-emerald-950 text-sm font-bold text-white shadow-sm md:hidden" aria-hidden="true">S</span>
+            <span className="brand-mark grid size-8 shrink-0 place-items-center rounded-lg shadow-sm md:hidden" aria-hidden="true"><span className="brand-mark-bars scale-75"><span /><span /><span /></span></span>
             <span className="truncate font-semibold text-slate-800 md:hidden">Spending insights</span>
-            <span className="hidden text-sm text-slate-500 md:inline">Personal banking / Spending</span>
+            <span className="hidden items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#65756a] md:flex"><span className="size-1.5 rounded-full bg-[#4a8f66]" aria-hidden="true" />Personal banking <span className="text-[#b4beb3]">/</span> Spending</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-full border border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100 text-xs font-bold text-emerald-900 shadow-sm" aria-hidden="true">{initials}</span>
+            <span className="grid size-9 place-items-center rounded-full border border-[#d5e3cf] bg-[#e5f0dc] text-xs font-bold text-[#244735]" aria-hidden="true">{initials}</span>
             <span className="hidden text-sm font-medium text-slate-700 sm:inline">{customerName}</span>
           </div>
         </header>
         {children}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.35rem)] pt-1 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[#dfe6dc] bg-[#f8f9f5]/95 px-2 pb-[max(env(safe-area-inset-bottom),0.35rem)] pt-1 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur md:hidden">
         {navigation('Mobile navigation', true)}
       </div>
     </div>

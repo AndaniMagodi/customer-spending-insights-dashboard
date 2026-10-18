@@ -3,8 +3,8 @@
 :root {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  color: #142f2b;
-  background: #f6f8f7;
+  color: #14211d;
+  background: #f1f3ee;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -26,8 +26,8 @@
 }
 
 .dashboard-background {
-  background-color: #f6f8f7;
-  background-image: radial-gradient(ellipse at top, #e8f5ef 0, #f6f8f7 34rem);
+  background-color: #f1f3ee;
+  background-image: radial-gradient(ellipse at 78% 0, #e3eee4 0, transparent 34rem);
 }
 
 .dashboard-enter > * {
@@ -47,16 +47,54 @@
 }
 
 .dashboard-surface {
-  border-color: #e2eae6;
-  box-shadow: 0 2px 8px rgb(20 47 43 / 5%), 0 1px 2px rgb(20 47 43 / 4%);
+  border-color: #dfe6dc;
+  box-shadow: 0 1px 2px rgb(17 39 30 / 4%), 0 8px 24px rgb(17 39 30 / 3%);
   transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
 }
 
 .dashboard-surface:hover {
   transform: translateY(-2px);
-  border-color: #bdd9cd;
-  box-shadow: 0 16px 34px rgb(20 47 43 / 9%), 0 3px 8px rgb(20 47 43 / 4%);
+  border-color: #b7cbb7;
+  box-shadow: 0 14px 30px rgb(17 39 30 / 8%), 0 2px 6px rgb(17 39 30 / 4%);
 }
+
+.brand-mark {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #b7eb69;
+  color: #12352a;
+}
+
+.brand-mark::after {
+  position: absolute;
+  z-index: -1;
+  right: -10px;
+  bottom: -16px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  content: "";
+  opacity: 0.2;
+}
+
+.brand-mark-bars {
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  height: 15px;
+}
+
+.brand-mark-bars span {
+  width: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.brand-mark-bars span:nth-child(1) { height: 6px; }
+.brand-mark-bars span:nth-child(2) { height: 10px; }
+.brand-mark-bars span:nth-child(3) { height: 15px; }
 
 * {
   box-sizing: border-box;
