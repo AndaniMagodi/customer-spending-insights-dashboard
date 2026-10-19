@@ -88,3 +88,7 @@ The Nginx container uses a non-root user, gzip compression, and security headers
 - Accessible loading, section-level error and retry, empty, and reduced-motion states
 - Composable transaction search, category, amount, and date filters with server pagination and sorting
 - Lazy-loaded charts, validated API responses, cancellable requests, and runtime API configuration
+
+## AI assistance
+
+I used AI tools during development for brainstorming, implementation support, and troubleshooting. I reviewed and adapted the suggestions, and I’m prepared to explain the code and decisions.
