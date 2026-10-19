@@ -66,17 +66,15 @@ src/
 └── index.css          # Global styles and design tokens
 ```
 
-## Data and API boundary
+## Sample data and API
 
-The API client requests all seven supplied endpoints: profile, summary, categories, monthly trends, transactions, spending goals, and available filters. Category and transaction icon/color metadata is rendered in the dashboard. Responses are validated at runtime with Zod. Query cancellation signals are passed to `fetch`, and TanStack Query retains previous results while a filter request is in flight. Preset transaction windows are calculated relative to the current local date; category requests also include a custom date range when one is applied.
+The dashboard follows the seven endpoints in the supplied API examples: profile, spending summary, categories, monthly trends, transactions, budget goals, and filters. The app checks API responses before displaying them.
 
-Goal statuses from the API are normalized to `on_track` or `warning`; an unknown status is derived from `percentageUsed` so new server-side statuses do not take down the goals section.
+By default, the app uses a mock API: sample responses that let you run the dashboard without a real banking service. Those examples are based on the supplied API descriptions, but most spending amounts, charts, goals, and transactions are illustrative. The transaction rows are only a sample, so their count will not necessarily match the totals shown elsewhere. Amounts are shown in South African rand (ZAR).
 
-MSW provides the sample API in local development and tests. Tests use the same request handlers as the browser worker, so they exercise the fetch client and response validation instead of returning fixtures directly from the API module. Fixtures are isolated under `src/features/spending/mocks/` and loaded in a separate chunk when mock mode is enabled.
+The filters work together: you can search and narrow transactions by date, category, or amount, then sort the results. The supplied API description does not include search or amount filters, so this demo adds those to its mock API. A real API would need to support them too. When you choose custom dates, the summary, category chart, and transactions use that range. Monthly trends and goals continue to show their own monthly data.
 
-The profile and 30-day summary/category examples follow the supplied endpoint contract. The supplied 30-day category transaction counts add to 53 while the summary reports 47; fixture counts are adjusted to add to 47 while the sample amounts and percentages are retained. Other period aggregates, monthly trend history, goals, and transaction rows are illustrative. Fixture dates are shifted relative to the current date so period views remain current over time. Transaction rows are representative samples rather than a complete ledger, so their count does not represent the aggregate KPI. For a custom date range, the MSW category response aggregates the representative transaction rows; a production backend should calculate this from the full account ledger. All displayed amounts are ZAR.
-
-Transaction search, category, amount, date, and sort filters compose before pagination. Search matches merchant, category, or description across the full filtered result set, and removable chips show the active filters. The supplied transaction endpoint does not define search or amount-bound parameters, so this project adds optional `search`, `minAmount`, and `maxAmount` query parameters to its typed client and MSW mock. A production API must implement these server-side filters before this behavior can be used with a real service. Applying a custom date range updates the summary KPIs, category chart, and transaction list together; the summary compares it with the immediately preceding range of equal length. The monthly trend and monthly goals keep their own clearly labeled scopes because their endpoints are monthly.
+To connect a real API, set `apiUrl` to its address and set `mockApi` to `false` in `public/config.json`. The API needs to provide the data listed above and support search and amount filters if you want those filters to work with real data.
 
 ## Security and deployment notes
 
@@ -90,9 +88,3 @@ The Nginx container uses a non-root user, gzip compression, and security headers
 - Accessible loading, section-level error and retry, empty, and reduced-motion states
 - Composable transaction search, category, amount, and date filters with server pagination and sorting
 - Lazy-loaded charts, validated API responses, cancellable requests, and runtime API configuration
-
-## What I would do next
-
-- Add contract-level integration tests against a staging API and reconcile the aggregate totals with its source ledger.
-- Add authenticated customer selection and server-side search when the real service supports those capabilities.
-- Add goal editing and notifications after the goals API provides write operations and user preferences.
